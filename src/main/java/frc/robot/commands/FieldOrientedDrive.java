@@ -28,7 +28,7 @@ public class FieldOrientedDrive extends Command {
     private double previousXSpeed;
     private double previousYSpeed;
 
-    private Boolean slowModeActive;
+    private Boolean slowModeActive = true;
     private Boolean hasToggled;
 
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
@@ -71,6 +71,7 @@ public class FieldOrientedDrive extends Command {
         SmartDashboard.putBoolean("Slow Mode Active", slowModeActive);
         maximumAcceleration=(slowModeActive ? AccelerationLimiterConstants.maximumAccelerationReduced : AccelerationLimiterConstants.maximumAcceleration);
         // SmartDashboard.putNumber("Goal bearing", goalBearing);
+
         //Both joysticks assumes the right to be bearing 0 and then works clockwise from there. To have bearing 0 be in front, the bearing
         //has to be moved back by 90 degrees/ 1/2 PI
         //If right joystick is not being moved retain previous bearing
@@ -122,6 +123,7 @@ public class FieldOrientedDrive extends Command {
         previousYSpeed=ySpeed;
         // SmartDashboard.putNumber("ySpeed", ySpeed);
 
+        // rotSpeed = 0;
         rotSpeed = bearingPIDController.calculate(robotBearing) * TestingConstants.maximumRotationSpeed;
         // SmartDashboard.putNumber("rotSpeed", rotSpeed);
         
@@ -130,7 +132,7 @@ public class FieldOrientedDrive extends Command {
         driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
 
         // William and Sam prefers this
-        driveSubsystem.drive(xSpeed, -ySpeed, -xboxController.getRightX()*(slowModeActive ? TestingConstants.reducedRotationSpeedRobotOriented : TestingConstants.maximumRotationSpeedRobotOriented), false);
+        //driveSubsystem.drive(xSpeed, -ySpeed, -xboxController.getRightX()*(slowModeActive ? TestingConstants.reducedRotationSpeedRobotOriented : TestingConstants.maximumRotationSpeedRobotOriented), false);
         
         // Emergency stop button (Not needed)
         // if(xboxController.rightBumper().getAsBoolean()){
