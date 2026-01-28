@@ -110,30 +110,21 @@ public class AprilTagPoseEstimator extends SubsystemBase {
    * @return The transform from the robot to the tag.
    */
   public Optional<Transform3d> getRobotToTag(int tagID) {
+  // Get robot pose in field coordinates
+  Optional<EstimatedRobotPose> globalPose = getGlobalPose();
+  if (globalPose.isEmpty()) return Optional.empty();
 
-    // Could not work out pose
-    Optional<EstimatedRobotPose> globalPose = this.getGlobalPose();
-    // SmartDashboard.putString("globalPose", globalPose.toString());
-    
-    if(globalPose.isEmpty()) return Optional.empty();
+  Pose3d robotPose = globalPose.get().estimatedPose;
 
-    // Look for tag
-    String tagText = "";
-    List<AprilTag> tags = this.aprilTagFieldLayout.getTags();
-    for(AprilTag tag : tags) {
-      if(tag.ID == tagID) {
-        tagText += "." + tag.ID;
-        Pose3d poseDifference = tag.pose.relativeTo(globalPose.get().estimatedPose);
-        // double yawRobotToTag = tag.pose.getRotation().getZ() - poseDifferenceFieldCoordinates.getRotation().getZ();
-        // Transform3d poseDifferenceTagCoordinates = poseDifferenceFieldCoordinates.;
-        return Optional.of(new Transform3d(poseDifference.getTranslation(), poseDifference.getRotation()));
-      }
-    }
-    // SmartDashboard.putString("tags", tagText);
+  // Get tag pose directly by ID
+  Optional<Pose3d> tagPoseOpt = aprilTagFieldLayout.getTagPose(tagID);
+  if (tagPoseOpt.isEmpty()) return Optional.empty();
 
-    // Required tag not on field
-    return Optional.empty();
-  }
+  Pose3d tagPose = tagPoseOpt.get();
+
+  // Compute robot -> tag transform
+  return Optional.of(new Transform3d(robotPose, tagPose));
+}
 /**
  * Get the transform from the robot to the first visible AprilTag.
  * @return The transform from the robot to the tag.
