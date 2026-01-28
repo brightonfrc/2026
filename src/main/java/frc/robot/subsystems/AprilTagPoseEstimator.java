@@ -47,6 +47,15 @@ public class AprilTagPoseEstimator extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+        // Getting the latest camera result periodically
+        if (cam.getLatestResult() != null) {
+            SmartDashboard.putString("Camera Status", "Streaming");
+
+            // You can also check if there are visible targets and log them
+            getVisibleTags();
+        } else {
+            SmartDashboard.putString("Camera Status", "Not Streaming");
+        }
   }
 
   /**
