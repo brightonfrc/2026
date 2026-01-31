@@ -128,6 +128,8 @@ public class FieldOrientedDrive extends Command {
         // SmartDashboard.putNumber("rotSpeed", rotSpeed);
         
 
+        // NOTE: both of these *may* work, this is still a topic of debate
+
         //Datis and Ella prefers this
         driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
 
