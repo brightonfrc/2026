@@ -30,6 +30,17 @@ import frc.robot.Constants.LiftConstants.Height;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
+  public static class ControlConstants {
+    // for what exactly the right joystick does in FieldOrientedDrive.java, which see
+    public static enum RightJoystickModes {
+      DatisElla,
+      WilliamSam,
+    }
+
+    // William and Sam are correct by general consensus
+    public static RightJoystickModes controlMode = RightJoystickModes.WilliamSam;
+  }
+
   public static class stupidConstants{
     //delete ASAP
     public static double armTolerance=Math.PI/180*4;

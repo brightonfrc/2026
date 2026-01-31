@@ -4,8 +4,10 @@
 package frc.robot.commands;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.Constants.AccelerationLimiterConstants;
+import frc.robot.Constants.ControlConstants;
 import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.Constants.TestingConstants;
+import frc.robot.Constants.ControlConstants.RightJoystickModes;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.math.controller.PIDController;
@@ -129,12 +131,25 @@ public class FieldOrientedDrive extends Command {
         
 
         // NOTE: both of these *may* work, this is still a topic of debate
+        
+        // if there is STILL some dissent regarding which mode to use, refer to Constants.java
+        if (ControlConstants.controlMode == RightJoystickModes.DatisElla) {
+            // Datis and Ella prefers this
+            driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
+        } else if (ControlConstants.controlMode == RightJoystickModes.WilliamSam) {
+            // William and Sam prefers this
+            driveSubsystem.drive(
+                xSpeed,
+                -ySpeed,
+                -xboxController.getRightX() * (
+                    slowModeActive ?
+                    TestingConstants.reducedRotationSpeedRobotOriented :
+                    TestingConstants.maximumRotationSpeedRobotOriented
+                ),
+                false
+            );
+        }
 
-        //Datis and Ella prefers this
-        driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
-
-        // William and Sam prefers this
-        //driveSubsystem.drive(xSpeed, -ySpeed, -xboxController.getRightX()*(slowModeActive ? TestingConstants.reducedRotationSpeedRobotOriented : TestingConstants.maximumRotationSpeedRobotOriented), false);
         
         // Emergency stop button (Not needed)
         // if(xboxController.rightBumper().getAsBoolean()){
