@@ -54,7 +54,7 @@ public class AprilTagAlignment extends Command {
   @Override
   public void initialize() {
     tagDisappeared=false;
-    System.out.println("Start Align");
+    logger.logMessage("Start Align");
     movementXPID = new PIDController(
       AprilTagAlignmentConstants.kMoveP,
       AprilTagAlignmentConstants.kMoveI,
@@ -86,7 +86,7 @@ public class AprilTagAlignment extends Command {
   
   @Override
   public void execute() {
-    // System.out.println("Aligning");
+    // logger.logMessage("Aligning");
     // Using displacement from first visible tag
     Optional<Transform3d> pose = poseEstimator.getRobotToSeenTag();
     logger.logDouble("Command/setPoint/X", offsetX);
@@ -136,14 +136,14 @@ public class AprilTagAlignment extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    System.out.println("End Align");
+    logger.logMessage("End Align");
     driveSubsystem.drive(0, 0, 0, false); // Stop the robot
   }
 
   @Override
   public boolean isFinished() {
     Boolean atSetpoint = (movementXPID.atSetpoint() && movementYPID.atSetpoint() && rotationPID.atSetpoint());
-    System.out.println("At Setpoint " + atSetpoint + "; tagDisappeared " + tagDisappeared);
+    logger.logMessage("At Setpoint " + atSetpoint + "; tagDisappeared " + tagDisappeared);
     return atSetpoint || tagDisappeared; // Stops when within error tolerance
   }
 }

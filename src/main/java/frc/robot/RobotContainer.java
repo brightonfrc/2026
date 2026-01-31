@@ -124,7 +124,7 @@ public class RobotContainer {
   private void configureBindings() {
     //R2 and L2 don't work
     if (m_driverController.x().getAsBoolean()){
-      System.out.println("Gyro reset");
+      logger.logMessage("Gyro reset");
     }
     m_driverController.x().onTrue( // Reset gyro whenever necessary
       new InstantCommand(() -> m_driveSubsystem.resetGyro(), m_driveSubsystem)

@@ -7,11 +7,23 @@ package frc.robot.loggers;
 public class BlankLogger implements GenericLogger {
     public BlankLogger() { }
 
-    public void logDouble(String label, double data) { }
+    /**
+     * BlankLogger shouldn't really be used at all: this just warns the user.
+     * @param message
+     */
+    private void warn(String message) {
+        GenericLogger.printLog("BlankLogger: " + message + "\n\tPlease check code for uninitialised loggers.");
+    }
+    private void warn() {
+        this.warn("Attempted to log data.");
+    }
 
-    public void logInteger(String label, long data) { }
+    // lots of methods, all of which we just set to warn the user
+    @Override public void logDouble(String label, double data) { this.warn(); }
+    @Override public void logInteger(String label, long data)  { this.warn(); }
+    @Override public void logBool(String label, boolean data)  { this.warn(); }
+    @Override public void logString(String label, String data) { this.warn(); }
 
-    public void logBool(String label, boolean data) { }
-    
-    public void logString(String label, String data) { }
+    // this one we actually provide a data, so it's not completely useless
+    @Override public void logMessage(String data) { this.warn(data); }
 }
