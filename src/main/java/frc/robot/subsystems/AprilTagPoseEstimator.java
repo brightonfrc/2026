@@ -21,15 +21,26 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+
+import frc.robot.loggers.*;
 
 public class AprilTagPoseEstimator extends SubsystemBase {
   private EstimatedRobotPose prevEstimatedRobotPose = new EstimatedRobotPose(new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)), 0, new ArrayList<PhotonTrackedTarget>(), PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
   private final AprilTagFieldLayout aprilTagFieldLayout;
   private final PhotonCamera cam;
   private final PhotonPoseEstimator photonPoseEstimator;
+
+  private GenericLogger logger = new BlankLogger();
+
+  /**
+   * Assign logger. refer to RobotContainer.java for the rationale behind this
+   * @param logger
+   */
+  public void assignLogger(GenericLogger logger) {
+    this.logger = logger; 
+  }
 
   /** Creates a new AprilTagPoseEstimator. */
   public AprilTagPoseEstimator() {
@@ -54,7 +65,7 @@ public class AprilTagPoseEstimator extends SubsystemBase {
   public List<PhotonTrackedTarget> getVisibleTags() {
     this.photonPoseEstimator.setReferencePose(this.prevEstimatedRobotPose.estimatedPose);
 
-    SmartDashboard.putString("latestResult", cam.getLatestResult().toString());
+    logger.logString("latestResult", cam.getLatestResult().toString());
 
     Optional<EstimatedRobotPose> pose = photonPoseEstimator.update(cam.getLatestResult());
     if(pose.isPresent()) {
@@ -63,10 +74,10 @@ public class AprilTagPoseEstimator extends SubsystemBase {
       for(int i = 0; i < this.prevEstimatedRobotPose.targetsUsed.size(); i++) {
         result += ":" + this.prevEstimatedRobotPose.targetsUsed.get(i).fiducialId;
       }
-      SmartDashboard.putString("Visible Tags", result);
+      logger.logString("Visible Tags", result);
       return this.prevEstimatedRobotPose.targetsUsed;
     }
-    SmartDashboard.putString("Visible Tags", "(none)");
+    logger.logString("Visible Tags", "(none)");
     return new ArrayList<PhotonTrackedTarget>();
   }
   
@@ -78,10 +89,10 @@ public class AprilTagPoseEstimator extends SubsystemBase {
     this.photonPoseEstimator.setReferencePose(this.prevEstimatedRobotPose.estimatedPose);
 
     List<PhotonTrackedTarget> targets = cam.getLatestResult().targets;
-    // SmartDashboard.putNumber("latestResult/count", targets.size());
+    // logger.logDouble("latestResult/count", targets.size());
 
     for(int i = 0; i < targets.size(); i++) {
-      // SmartDashboard.putString("latestResult/"+i, targets.get(i).fiducialId+"@"+targets.get(i).bestCameraToTarget.toString());
+      // logger.logString("latestResult/"+i, targets.get(i).fiducialId+"@"+targets.get(i).bestCameraToTarget.toString());
     }
 
     Optional<EstimatedRobotPose> pose = photonPoseEstimator.update(cam.getLatestResult());
@@ -103,7 +114,7 @@ public class AprilTagPoseEstimator extends SubsystemBase {
 
     // Could not work out pose
     Optional<EstimatedRobotPose> globalPose = this.getGlobalPose();
-    // SmartDashboard.putString("globalPose", globalPose.toString());
+    // logger.logString("globalPose", globalPose.toString());
     
     if(globalPose.isEmpty()) return Optional.empty();
 
@@ -119,7 +130,7 @@ public class AprilTagPoseEstimator extends SubsystemBase {
         return Optional.of(new Transform3d(poseDifference.getTranslation(), poseDifference.getRotation()));
       }
     }
-    // SmartDashboard.putString("tags", tagText);
+    // logger.logString("tags", tagText);
 
     // Required tag not on field
     return Optional.empty();

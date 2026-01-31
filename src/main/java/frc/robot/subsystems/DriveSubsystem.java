@@ -16,12 +16,13 @@ import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Robot;
+import frc.robot.loggers.BlankLogger;
+import frc.robot.loggers.GenericLogger;
 import frc.robot.Constants.AutonPathPlannerConstants;
 import frc.robot.Constants.ChoreoConstants;
 import frc.robot.Constants.DriveConstants;
 import frc.robot.Constants.FieldOrientedDriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.studica.frc.AHRS;
 import choreo.trajectory.SwerveSample;
@@ -83,6 +84,16 @@ public class DriveSubsystem extends SubsystemBase {
   // private final PIDController xController = new PIDController(ChoreoConstants.translationkP, ChoreoConstants.translationkI, ChoreoConstants.translationkD);
   // private final PIDController yController = new PIDController(ChoreoConstants.translationkP, ChoreoConstants.translationkI, ChoreoConstants.translationkD);
   // private final PIDController headingController = new PIDController(ChoreoConstants.rotationkP, ChoreoConstants.rotationkI, ChoreoConstants.rotationkD);
+
+  private GenericLogger logger = new BlankLogger();
+
+  /**
+   * Assign logger. refer to RobotContainer.java for the rationale behind this
+   * @param logger
+   */
+  public void assignLogger(GenericLogger logger) {
+    this.logger = logger; 
+  }
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
@@ -158,9 +169,9 @@ public class DriveSubsystem extends SubsystemBase {
     //   angle+=360;
     // }
     // pose= new Pose2d(pose.getX(), pose.getY(), Rotation2d.fromDegrees(angle));
-    SmartDashboard.putNumber("Pose/x", pose.getX());
-    SmartDashboard.putNumber("Pose/y", pose.getY());
-    SmartDashboard.putNumber("Pose/rot", pose.getRotation().getDegrees());
+    logger.logDouble("Pose/x", pose.getX());
+    logger.logDouble("Pose/y", pose.getY());
+    logger.logDouble("Pose/rot", pose.getRotation().getDegrees());
     return pose;
   }
   /**Returns currently-estimated pose without current bearing */
@@ -214,8 +225,6 @@ public class DriveSubsystem extends SubsystemBase {
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
-
-    //SmartDashboard.put
   }
 
   /**

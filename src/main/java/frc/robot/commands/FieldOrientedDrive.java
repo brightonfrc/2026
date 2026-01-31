@@ -8,10 +8,13 @@ import frc.robot.Constants.ControlConstants;
 import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.Constants.TestingConstants;
 import frc.robot.Constants.ControlConstants.RightJoystickModes;
+import frc.robot.loggers.BlankLogger;
+import frc.robot.loggers.GenericLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
+import frc.robot.loggers.*;
 /** An example command that uses an example subsystem. */
 public class FieldOrientedDrive extends Command {
     private DriveSubsystem driveSubsystem;
@@ -33,6 +36,16 @@ public class FieldOrientedDrive extends Command {
     private Boolean slowModeActive = true;
     private Boolean hasToggled;
 
+    private GenericLogger logger = new BlankLogger();
+
+    /**
+     * Assign logger. refer to RobotContainer.java for the rationale behind this
+     * @param logger
+     */
+    public void assignLogger(GenericLogger logger) {
+       this.logger = logger; 
+    }
+
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     /**
      * Creates a new ExampleCommand.
@@ -45,6 +58,7 @@ public class FieldOrientedDrive extends Command {
         // Use addRequirements() here to declare subsystem dependencies.
         addRequirements(driveSubsystem);
     }
+
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
@@ -70,9 +84,9 @@ public class FieldOrientedDrive extends Command {
             //button no longer pressed, able to toggle slow mode now
             hasToggled=false;
         }
-        SmartDashboard.putBoolean("Slow Mode Active", slowModeActive);
+        logger.logBool("Slow Mode Active", slowModeActive);
         maximumAcceleration=(slowModeActive ? AccelerationLimiterConstants.maximumAccelerationReduced : AccelerationLimiterConstants.maximumAcceleration);
-        // SmartDashboard.putNumber("Goal bearing", goalBearing);
+        logger.logDouble("Goal bearing", goalBearing);
 
         //Both joysticks assumes the right to be bearing 0 and then works clockwise from there. To have bearing 0 be in front, the bearing
         //has to be moved back by 90 degrees/ 1/2 PI
@@ -80,7 +94,7 @@ public class FieldOrientedDrive extends Command {
         if (Math.hypot(xboxController.getRightY(), xboxController.getRightX())>  0.9) {
             joystickTurnBearing = Math.atan2(xboxController.getRightY(), xboxController.getRightX()) + Math.PI/2;
         }
-        // SmartDashboard.putNumber("Turn: Right Joystick bearing", joystickTurnBearing);
+        logger.logDouble("Turn: Right Joystick bearing", joystickTurnBearing);
         //error tolerance of 2 degrees
         if (Math.abs(joystickTurnBearing-goalBearing)>Math.PI/180*FieldOrientedDriveConstants.bearingTolerance){
             goalBearing = -joystickTurnBearing;
@@ -94,16 +108,18 @@ public class FieldOrientedDrive extends Command {
         }
         //converting to radians
         robotBearing = robotBearing / 180 * Math.PI;
-        // SmartDashboard.putNumber("Robot bearing", robotBearing);
+        logger.logDouble("Robot bearing", robotBearing);
+
         //it looks cooked but that's because the controller is mapped kinda funny
         joystickMoveBearing = Math.atan2(xboxController.getLeftX(), -xboxController.getLeftY());
-        // SmartDashboard.putNumber("Drive: Left joystick bearing", joystickMoveBearing);
+        logger.logDouble("Drive: Left joystick bearing", joystickMoveBearing);
+
         //gyro measures angles anticlockwise.
         joystickMoveBearing=joystickMoveBearing+robotBearing-2*Math.PI;
+        logger.logDouble("Drive: Robot Relative bearing", joystickMoveBearing);
 
-        // SmartDashboard.putNumber("Drive: Robot Relative bearing", joystickMoveBearing);
         joystickMoveMagnitude = Math.pow(Math.pow(xboxController.getLeftX(), 2) + Math.pow(xboxController.getLeftY(), 2), 0.5);
-        // SmartDashboard.putNumber("Drive: Left joystick magnitude", joystickMoveMagnitude);
+        logger.logDouble("Drive: Left joystick magnitude", joystickMoveMagnitude);
 
         xSpeed = joystickMoveMagnitude * Math.cos(joystickMoveBearing) * (slowModeActive ? TestingConstants.maximumSpeedReduced : TestingConstants.maximumSpeed);
         if(xSpeed>previousXSpeed+maximumAcceleration){
@@ -113,7 +129,7 @@ public class FieldOrientedDrive extends Command {
             xSpeed=previousXSpeed- maximumAcceleration;
         }
         previousXSpeed=xSpeed;
-        // SmartDashboard.putNumber("xSpeed", xSpeed);
+        logger.logDouble("xSpeed", xSpeed);
 
         ySpeed = joystickMoveMagnitude * Math.sin(joystickMoveBearing) * (slowModeActive ? TestingConstants.maximumSpeedReduced : TestingConstants.maximumSpeed);
         if(ySpeed>previousYSpeed+maximumAcceleration){
@@ -123,32 +139,29 @@ public class FieldOrientedDrive extends Command {
             ySpeed=previousYSpeed-maximumAcceleration;
         }
         previousYSpeed=ySpeed;
-        // SmartDashboard.putNumber("ySpeed", ySpeed);
+        logger.logDouble("ySpeed", ySpeed);
 
         // rotSpeed = 0;
-        rotSpeed = bearingPIDController.calculate(robotBearing) * TestingConstants.maximumRotationSpeed;
-        // SmartDashboard.putNumber("rotSpeed", rotSpeed);
+        logger.logDouble("rotSpeed", rotSpeed);
         
 
         // NOTE: both of these *may* work, this is still a topic of debate
         
         // if there is STILL some dissent regarding which mode to use, refer to Constants.java
+        // XXX: please can someone more knowledgeable than me remove this and replace it with better code?
         if (ControlConstants.controlMode == RightJoystickModes.DatisElla) {
-            // Datis and Ella prefers this
-            driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
+            // Datis and Ella prefer this
+            rotSpeed = bearingPIDController.calculate(robotBearing) * TestingConstants.maximumRotationSpeed;
         } else if (ControlConstants.controlMode == RightJoystickModes.WilliamSam) {
-            // William and Sam prefers this
-            driveSubsystem.drive(
-                xSpeed,
-                -ySpeed,
-                -xboxController.getRightX() * (
-                    slowModeActive ?
-                    TestingConstants.reducedRotationSpeedRobotOriented :
-                    TestingConstants.maximumRotationSpeedRobotOriented
-                ),
-                false
+            // William and Sam prefer this
+            rotSpeed= -xboxController.getRightX() * (
+                slowModeActive ?
+                TestingConstants.reducedRotationSpeedRobotOriented :
+                TestingConstants.maximumRotationSpeedRobotOriented
             );
         }
+
+        driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
 
         
         // Emergency stop button (Not needed)

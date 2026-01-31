@@ -7,11 +7,11 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutonomousNavConstants;
 import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.subsystems.DriveSubsystem;
 
+import frc.robot.loggers.*;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class MoveToPoint extends Command {
@@ -20,6 +20,17 @@ public class MoveToPoint extends Command {
   private PIDController yController;
   private PIDController rotController;
   private double goal; 
+
+  private GenericLogger logger = new BlankLogger();
+
+  /**
+   * Assign logger. refer to RobotContainer.java for the rationale behind this
+   * @param logger
+   */
+  public void assignLogger(GenericLogger logger) {
+    this.logger = logger; 
+  }
+
 //   public MoveToPoint(DriveSubsystem driveSubsystem, Pose2d goal) {
 //     // Use addRequirements() here to declare subsystem dependencies.
 //     this.driveSubsystem=driveSubsystem;
@@ -67,20 +78,20 @@ public class MoveToPoint extends Command {
       //converting to within range 0 to 360 degrees
       robotBearing+=360;
     }
-    // SmartDashboard.putNumber("Pose/x", driveSubsystem.getPose().getX());
-    // SmartDashboard.putNumber("Pose/y", driveSubsystem.getPose().getY());
-    SmartDashboard.putBoolean("MoveToPointActive", true);
+    logger.logDouble("Pose/x", driveSubsystem.getPose().getX());
+    logger.logDouble("Pose/y", driveSubsystem.getPose().getY());
+    logger.logBool("MoveToPointActive", true);
 
-    //convert to radians
+    //convert to radianslogger.logDouble
     robotBearing=Math.toRadians(robotBearing);
-    SmartDashboard.putNumber("Bearing", robotBearing);
+    logger.logDouble("Bearing", robotBearing);
     double rotSpeed=rotController.calculate(robotBearing);
     // double xSpeed=xController.calculate(-driveSubsystem.getPose().getX());
     // double ySpeed=yController.calculate(-driveSubsystem.getPose().getY());
-    // SmartDashboard.putNumber("Speed/x", xSpeed);
-    // SmartDashboard.putNumber("Speed/y", ySpeed);
+    // logger.logDouble("Speed/x", xSpeed);
+    // logger.logDouble("Speed/y", ySpeed);
     //rotation works
-    // SmartDashboard.putNumber("Speed/rot", rotSpeed);
+    // logger.logDouble("Speed/rot", rotSpeed);
     // driveSubsystem.drive(xSpeed, 0, 0, false);
     // if (xController.atSetpoint()&&yController.atSetpoint()){
     //   driveSubsystem.drive(0, 0, rotSpeed, false);
@@ -92,7 +103,7 @@ public class MoveToPoint extends Command {
   @Override
   public void end(boolean interrupted) {
     driveSubsystem.drive(0, 0, 0, false);
-    SmartDashboard.putBoolean("MoveToPointActive", false);
+    logger.logBool("MoveToPointActive", false);
   }
 
   // Returns true when the command should end.

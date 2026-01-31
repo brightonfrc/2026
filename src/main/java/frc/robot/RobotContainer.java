@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.commands.MoveToPoint;
 import frc.robot.commands.StopRobot;
+import frc.robot.loggers.GenericLogger;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
 import choreo.auto.AutoFactory;
@@ -60,10 +61,11 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
+import frc.robot.loggers.*;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -72,20 +74,37 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
-  private final DriveSubsystem m_driveSubsystem= new DriveSubsystem();
+  private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
   private final AprilTagPoseEstimator m_poseEstimator = new AprilTagPoseEstimator();
+
+  private final GenericLogger logger;
 
   private boolean active = false;
 
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
   new CommandXboxController(OIConstants.kDriverControllerPort);
-  private final CommandPS4Controller m_manualLiftController= new CommandPS4Controller(OIConstants.kManualLiftControllerPort);
+  private final CommandPS4Controller m_manualLiftController = new CommandPS4Controller(OIConstants.kManualLiftControllerPort);
   private final FieldOrientedDrive fieldOrientedDrive= new FieldOrientedDrive(m_driveSubsystem, m_driverController);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
-  public RobotContainer() {
+  public RobotContainer(GenericLogger logger) {
     // Configure the trigger bindings
     m_driveSubsystem.setDefaultCommand(fieldOrientedDrive);
+
+    // we need to assign the logger to every single child.
+    // this means we use the same logger *everywhere*, so we pass it down.
+    // it is not static, as in the future we may add a logging system that is stateful, so *JUST IN CASE*
+    // As logging is optional, we have this method to assign it rather than pass into constructor
+    //
+    // As some commands/susbsystems aren't used, comments are used to replace them,
+    // to serve as a reminder to do this for all future commands
+    m_driveSubsystem.assignLogger(logger);
+    m_poseEstimator.assignLogger(logger);
+    /* assign logger to AprilTagAlignment */
+    /* assign logger to CoralStationAlign: this is done lower down in configureBindings() */
+    /* assign logger to MoveToPoint */
+    fieldOrientedDrive.assignLogger(logger);
+    this.logger = logger;
   }
 
   /**
@@ -110,7 +129,11 @@ public class RobotContainer {
     m_driverController.x().onTrue( // Reset gyro whenever necessary
       new InstantCommand(() -> m_driveSubsystem.resetGyro(), m_driveSubsystem)
     );
-    m_driverController.leftBumper().onTrue(new CoralStationAlign(m_driveSubsystem, m_driverController));
+
+    // TODO: move creation of CoralStationAlign outside of a method
+    CoralStationAlign coral_a = new CoralStationAlign(m_driveSubsystem, m_driverController);
+    coral_a.assignLogger(logger);
+    m_driverController.leftBumper().onTrue(coral_a);
   }
 
   /**
@@ -144,7 +167,7 @@ public class RobotContainer {
   }
   public Pose2d getPose(){
     return m_driveSubsystem.getPose();
-    // SmartDashboard.putString("Auto", "AprilTag Alignment");
+    // logger.logString("Auto", "AprilTag Alignment");
     // return new AprilTagAlignment(m_driveSubsystem, new AprilTagPoseEstimator(), 3, 0.5);
   }
 
@@ -153,10 +176,10 @@ public class RobotContainer {
     Optional<Transform3d> opt = m_poseEstimator.getRobotToSeenTag();
     if(opt.isPresent()) {
       Transform3d r2t = opt.get();
-      // SmartDashboard.putString("robot2tag", r2t.getTranslation().toString() + "Rotation3d(yaw="+r2t.getRotation().getZ()+", pitch="+r2t.getRotation().getY()+", roll="+r2t.getX()+")");
-      SmartDashboard.putNumber("robot2tag/t/x", r2t.getTranslation().getX());
-      SmartDashboard.putNumber("robot2tag/t/y", r2t.getTranslation().getY());
-      SmartDashboard.putNumber("robot2tag/r/yaw", r2t.getRotation().getZ());
+      logger.logString("robot2tag", r2t.getTranslation().toString() + "Rotation3d(yaw="+r2t.getRotation().getZ()+", pitch="+r2t.getRotation().getY()+", roll="+r2t.getX()+")");
+      logger.logDouble("robot2tag/t/x", r2t.getTranslation().getX());
+      logger.logDouble("robot2tag/t/y", r2t.getTranslation().getY());
+      logger.logDouble("robot2tag/r/yaw", r2t.getRotation().getZ());
     }
   }
 

@@ -8,10 +8,11 @@ package frc.robot;
 import choreo.auto.AutoFactory;
 import edu.wpi.first.apriltag.AprilTagPoseEstimator;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.AutonomousNavConstants;
+
+import frc.robot.loggers.*;
 
 /**
  * The methods in this class are called automatically corresponding to each mode, as described in
@@ -23,6 +24,10 @@ public class Robot extends TimedRobot {
 
   private final RobotContainer m_robotContainer;
   
+  // XXX: THIS IS THE THE LOGGER.
+  // We pass this down to every single child class.
+  private final GenericLogger logger = new SmartDashboardLogger();
+
 
   /**
    * This function is run when the robot is first started up and should be used for any
@@ -31,7 +36,7 @@ public class Robot extends TimedRobot {
   public Robot() {
     // Instantiate our RobotContainer.  This will perform all our button bindings, and put our
     // autonomous chooser on the dashboard.
-    m_robotContainer = new RobotContainer();
+    m_robotContainer = new RobotContainer(logger);
   }
 
   /**
@@ -61,7 +66,7 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    SmartDashboard.putString("Auto Path", AutonomousNavConstants.startPos.toString());
+    logger.logString("Auto Path", AutonomousNavConstants.startPos.toString());
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     m_robotContainer.resetGyro();
     // schedule the autonomous command (example)
@@ -75,7 +80,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     
-    SmartDashboard.putString("Pose", m_robotContainer.getPose().toString());
+    logger.logString("Pose", m_robotContainer.getPose().toString());
   }
 
   @Override

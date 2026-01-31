@@ -9,7 +9,6 @@ import java.util.Optional;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Robot;
@@ -21,6 +20,8 @@ import frc.robot.Constants.TestingConstants;
 import frc.robot.subsystems.AprilTagPoseEstimator;
 import frc.robot.subsystems.DriveSubsystem;
 
+import frc.robot.loggers.*;
+
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class CoralStationAlign extends Command {
   private DriveSubsystem driveSubsystem;
@@ -29,6 +30,17 @@ public class CoralStationAlign extends Command {
   private AprilTagPoseEstimator estimator;
   private PIDController xPIDController;
   private boolean active;
+
+  private GenericLogger logger = new BlankLogger();
+
+  /**
+   * Assign logger. refer to RobotContainer.java for the rationale behind this
+   * @param logger
+   */
+  public void assignLogger(GenericLogger logger) {
+    this.logger = logger; 
+  }
+
   /** 
    * Creates a new CoralStationAlign, which locks the robot's bearing towards the left coral station
    * Coral station require is decided by the general direction of left joystick
@@ -63,13 +75,13 @@ public class CoralStationAlign extends Command {
       if (currentBearing<0){
         currentBearing+=360;
       }
-      // SmartDashboard.putNumber("robotBearing", currentBearing);
+      // logger.logDouble("robotBearing", currentBearing);
       if (currentBearing<180){
-        // SmartDashboard.putBoolean("SetRightCS", false);
+        // logger.logBool("SetRightCS", false);
         bearingPIDController.setSetpoint(CoralStationAlignConstants.leftCoralStationRot*Math.PI/180);
       }
       else{
-        // SmartDashboard.putBoolean("SetRightCS", true);
+        // logger.logBool("SetRightCS", true);
         bearingPIDController.setSetpoint(CoralStationAlignConstants.rightCoralStationRot*Math.PI/180);
       }
       bearingPIDController.setTolerance(FieldOrientedDriveConstants.bearingTolerance);
@@ -88,8 +100,8 @@ public class CoralStationAlign extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    SmartDashboard.putNumber("robotBearing", driveSubsystem.getGyroAngle());
-    SmartDashboard.putBoolean("Coral Station Align Active", true);
+    logger.logDouble("robotBearing", driveSubsystem.getGyroAngle());
+    logger.logBool("Coral Station Align Active", true);
     //check to end command
     if (controller.rightBumper().getAsBoolean()){
       //end command the moment rightBumper is pressed
@@ -112,12 +124,12 @@ public class CoralStationAlign extends Command {
     double joystickMoveMagnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
     // Optional<Transform3d> pose = estimator.getRobotToSeenTag();
     // if (pose.isEmpty()){
-    //   SmartDashboard.putBoolean("April Tag in view", false);
+    //   logger.logBool("April Tag in view", false);
     //   xSpeed= joystickMoveMagnitude * Math.cos(joystickMoveBearing) * TestingConstants.maximumSpeedReduced;
     // }
     // else{
-    //   SmartDashboard.putBoolean("April Tag in view", true);
-    //   SmartDashboard.putNumber("XDisplacement", pose.get().getX());
+    //   logger.logBool("April Tag in view", true);
+    //   logger.logDouble("XDisplacement", pose.get().getX());
     //   //reverse xSpeed because drivetrain must drive at positive sped to reduce xdistance
     //   xSpeed= -xPIDController.calculate(pose.get().getX());
     // }
@@ -129,7 +141,7 @@ public class CoralStationAlign extends Command {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    SmartDashboard.putBoolean("Coral Station Align Active", false);
+    logger.logBool("Coral Station Align Active", false);
   }
 
   // Returns true when the command should end.

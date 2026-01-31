@@ -8,7 +8,6 @@ import frc.robot.Constants.AprilTagAlignmentConstants;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 
@@ -17,6 +16,8 @@ import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.targeting.PhotonTrackedTarget;
+
+import frc.robot.loggers.*;
 
 public class AprilTagAlignment extends Command {
   private DriveSubsystem driveSubsystem;
@@ -28,6 +29,16 @@ public class AprilTagAlignment extends Command {
   private Boolean tagDisappeared;
 
   private PIDController rotationPID;
+
+  private GenericLogger logger = new BlankLogger();
+
+  /**
+   * Assign logger. refer to RobotContainer.java for the rationale behind this
+   * @param logger
+   */
+  public void assignLogger(GenericLogger logger) {
+    this.logger = logger; 
+  }
 
   public AprilTagAlignment(DriveSubsystem _driveSubsystem, AprilTagPoseEstimator _poseEstimator, double offsetX, double offsetY) {
     driveSubsystem = _driveSubsystem;
@@ -78,15 +89,15 @@ public class AprilTagAlignment extends Command {
     // System.out.println("Aligning");
     // Using displacement from first visible tag
     Optional<Transform3d> pose = poseEstimator.getRobotToSeenTag();
-    SmartDashboard.putNumber("Command/setPoint/X", offsetX);
-    SmartDashboard.putNumber("Command/Setpoint/Y", offsetY);
+    logger.logDouble("Command/setPoint/X", offsetX);
+    logger.logDouble("Command/Setpoint/Y", offsetY);
 
     if (pose.isPresent()) {
-      SmartDashboard.putBoolean("Tag in view", true);
+      logger.logBool("Tag in view", true);
       Transform3d transform = pose.get();
-      SmartDashboard.putNumber("command/t/x", transform.getTranslation().getX());
-      SmartDashboard.putNumber("command/t/y", transform.getTranslation().getY());
-      SmartDashboard.putNumber("command/r/yaw", transform.getRotation().getZ());
+      logger.logDouble("command/t/x", transform.getTranslation().getX());
+      logger.logDouble("command/t/y", transform.getTranslation().getY());
+      logger.logDouble("command/r/yaw", transform.getRotation().getZ());
       Translation3d translation = transform.getTranslation();
       Rotation3d rotation = transform.getRotation();
 
@@ -98,27 +109,27 @@ public class AprilTagAlignment extends Command {
       double rotationOutput = rotationPID.calculate(yaw);
 
       if(rotationPID.atSetpoint()){ 
-        SmartDashboard.putBoolean("Aligned", true);
+        logger.logBool("Aligned", true);
         // Move towards set point
         // Use PID  to calculate the movement speed needed to reduce error
         double movementSpeed = movementXPID.calculate(x); // 
         double strafeSpeed = movementYPID.calculate(y);   // 
         
         // Drive the robot towards the AprilTag
-        SmartDashboard.putNumber("Speed/X", -movementSpeed);
-        SmartDashboard.putNumber("Speed/Y", strafeSpeed);
+        logger.logDouble("Speed/X", -movementSpeed);
+        logger.logDouble("Speed/Y", strafeSpeed);
         driveSubsystem.drive(-movementSpeed, strafeSpeed, 0, false); 
         // no need to invert strafespeed because y is also inversed (positive = left) 
         // negative movementSpeed because robot needs to drive forwards (not backwards) in order to reduce xDisplacement
       }
       else{ // If not at set point, rotate towards setpoint
-        SmartDashboard.putBoolean("Aligned", false);
-        SmartDashboard.putNumber("Speed/rot", rotationOutput);
+        logger.logBool("Aligned", false);
+        logger.logDouble("Speed/rot", rotationOutput);
         driveSubsystem.drive(0, 0, -rotationOutput, false);
       }
     }
     else {
-      SmartDashboard.putBoolean("Tag in view", false);
+      logger.logBool("Tag in view", false);
       tagDisappeared = true;
     }
   }
