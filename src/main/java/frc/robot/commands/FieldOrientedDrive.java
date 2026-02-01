@@ -10,13 +10,14 @@ import frc.robot.Constants.TestingConstants;
 import frc.robot.Constants.ControlConstants.RightJoystickModes;
 import frc.robot.loggers.BlankLogger;
 import frc.robot.loggers.GenericLogger;
+import frc.robot.loggers.loggables.CommandWithLogger;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.math.controller.PIDController;
 
 import frc.robot.loggers.*;
 /** An example command that uses an example subsystem. */
-public class FieldOrientedDrive extends Command {
+public class FieldOrientedDrive extends CommandWithLogger {
     private DriveSubsystem driveSubsystem;
     private CommandXboxController xboxController;
     private PIDController bearingPIDController;
@@ -35,16 +36,6 @@ public class FieldOrientedDrive extends Command {
 
     private Boolean slowModeActive = true;
     private Boolean hasToggled;
-
-    private GenericLogger logger = new BlankLogger();
-
-    /**
-     * Assign logger. refer to RobotContainer.java for the rationale behind this
-     * @param logger
-     */
-    public void assignLogger(GenericLogger logger) {
-       this.logger = logger; 
-    }
 
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     /**

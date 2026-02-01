@@ -18,8 +18,9 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import frc.robot.loggers.*;
+import frc.robot.loggers.loggables.CommandWithLogger;
 
-public class AprilTagAlignment extends Command {
+public class AprilTagAlignment extends CommandWithLogger {
   private DriveSubsystem driveSubsystem;
   private AprilTagPoseEstimator poseEstimator;
   private PIDController movementXPID;
@@ -30,16 +31,6 @@ public class AprilTagAlignment extends Command {
 
   private PIDController rotationPID;
 
-  private GenericLogger logger = new BlankLogger();
-
-  /**
-   * Assign logger. refer to RobotContainer.java for the rationale behind this
-   * @param logger
-   */
-  public void assignLogger(GenericLogger logger) {
-    this.logger = logger; 
-  }
-
   public AprilTagAlignment(DriveSubsystem _driveSubsystem, AprilTagPoseEstimator _poseEstimator, double offsetX, double offsetY) {
     driveSubsystem = _driveSubsystem;
     poseEstimator = _poseEstimator;
@@ -49,12 +40,10 @@ public class AprilTagAlignment extends Command {
     this.addRequirements(_driveSubsystem, _poseEstimator);
   }
 
-  
-
   @Override
   public void initialize() {
     tagDisappeared=false;
-    logger.logMessage("Start Align");
+    logger.echo("Start Align");
     movementXPID = new PIDController(
       AprilTagAlignmentConstants.kMoveP,
       AprilTagAlignmentConstants.kMoveI,
@@ -86,7 +75,7 @@ public class AprilTagAlignment extends Command {
   
   @Override
   public void execute() {
-    // logger.logMessage("Aligning");
+    // logger.echo("Aligning");
     // Using displacement from first visible tag
     Optional<Transform3d> pose = poseEstimator.getRobotToSeenTag();
     logger.logDouble("Command/setPoint/X", offsetX);
@@ -136,14 +125,14 @@ public class AprilTagAlignment extends Command {
 
   @Override
   public void end(boolean interrupted) {
-    logger.logMessage("End Align");
+    logger.echo("End Align");
     driveSubsystem.drive(0, 0, 0, false); // Stop the robot
   }
 
   @Override
   public boolean isFinished() {
     Boolean atSetpoint = (movementXPID.atSetpoint() && movementYPID.atSetpoint() && rotationPID.atSetpoint());
-    logger.logMessage("At Setpoint " + atSetpoint + "; tagDisappeared " + tagDisappeared);
+    logger.echo("At Setpoint " + atSetpoint + "; tagDisappeared " + tagDisappeared);
     return atSetpoint || tagDisappeared; // Stops when within error tolerance
   }
 }

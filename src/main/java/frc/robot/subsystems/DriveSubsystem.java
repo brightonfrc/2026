@@ -18,6 +18,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Robot;
 import frc.robot.loggers.BlankLogger;
 import frc.robot.loggers.GenericLogger;
+import frc.robot.loggers.loggables.SubsystemBaseWithLogger;
 import frc.robot.Constants.AutonPathPlannerConstants;
 import frc.robot.Constants.ChoreoConstants;
 import frc.robot.Constants.DriveConstants;
@@ -36,7 +37,7 @@ import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 
-public class DriveSubsystem extends SubsystemBase {
+public class DriveSubsystem extends SubsystemBaseWithLogger {
   // Create MAXSwerveModules
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
@@ -84,16 +85,6 @@ public class DriveSubsystem extends SubsystemBase {
   // private final PIDController xController = new PIDController(ChoreoConstants.translationkP, ChoreoConstants.translationkI, ChoreoConstants.translationkD);
   // private final PIDController yController = new PIDController(ChoreoConstants.translationkP, ChoreoConstants.translationkI, ChoreoConstants.translationkD);
   // private final PIDController headingController = new PIDController(ChoreoConstants.rotationkP, ChoreoConstants.rotationkI, ChoreoConstants.rotationkD);
-
-  private GenericLogger logger = new BlankLogger();
-
-  /**
-   * Assign logger. refer to RobotContainer.java for the rationale behind this
-   * @param logger
-   */
-  public void assignLogger(GenericLogger logger) {
-    this.logger = logger; 
-  }
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {

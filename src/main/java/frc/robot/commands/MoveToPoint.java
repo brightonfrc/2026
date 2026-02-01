@@ -12,24 +12,15 @@ import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.subsystems.DriveSubsystem;
 
 import frc.robot.loggers.*;
+import frc.robot.loggers.loggables.CommandWithLogger;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class MoveToPoint extends Command {
+public class MoveToPoint extends CommandWithLogger {
   private DriveSubsystem driveSubsystem;
   private PIDController xController;
   private PIDController yController;
   private PIDController rotController;
   private double goal; 
-
-  private GenericLogger logger = new BlankLogger();
-
-  /**
-   * Assign logger. refer to RobotContainer.java for the rationale behind this
-   * @param logger
-   */
-  public void assignLogger(GenericLogger logger) {
-    this.logger = logger; 
-  }
 
 //   public MoveToPoint(DriveSubsystem driveSubsystem, Pose2d goal) {
 //     // Use addRequirements() here to declare subsystem dependencies.

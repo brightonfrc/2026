@@ -30,7 +30,7 @@ public class AdvantageScope implements GenericLogger {
     }
 
     @Override
-    public void logMessage(String data) {
+    public void echo(String data) {
         // TODO Auto-generated method stub
         throw new UnsupportedOperationException("Unimplemented method 'logMessage'");
     }

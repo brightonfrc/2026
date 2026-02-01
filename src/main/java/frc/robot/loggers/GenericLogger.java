@@ -10,7 +10,7 @@ public interface GenericLogger {
     void logInteger(String label, long data);
     void logBool(String label, boolean data);
     void logString(String label, String data);
-    void logMessage(String data);
+    void echo(String data);
 
     /**
      * Helper method to dump data to a log.

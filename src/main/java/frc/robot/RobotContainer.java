@@ -98,12 +98,12 @@ public class RobotContainer {
     //
     // As some commands/susbsystems aren't used, comments are used to replace them,
     // to serve as a reminder to do this for all future commands
-    m_driveSubsystem.assignLogger(logger);
-    m_poseEstimator.assignLogger(logger);
-    /* assign logger to AprilTagAlignment */
+    m_driveSubsystem.setLogger(logger);
+    m_poseEstimator.setLogger(logger);
+    /* assign logger to AprilTagAlignment, this is commented out later on */
     /* assign logger to CoralStationAlign: this is done lower down in configureBindings() */
     /* assign logger to MoveToPoint */
-    fieldOrientedDrive.assignLogger(logger);
+    fieldOrientedDrive.setLogger(logger);
     this.logger = logger;
   }
 
@@ -124,7 +124,7 @@ public class RobotContainer {
   private void configureBindings() {
     //R2 and L2 don't work
     if (m_driverController.x().getAsBoolean()){
-      logger.logMessage("Gyro reset");
+      logger.echo("Gyro reset");
     }
     m_driverController.x().onTrue( // Reset gyro whenever necessary
       new InstantCommand(() -> m_driveSubsystem.resetGyro(), m_driveSubsystem)
@@ -132,7 +132,7 @@ public class RobotContainer {
 
     // TODO: move creation of CoralStationAlign outside of a method
     CoralStationAlign coral_a = new CoralStationAlign(m_driveSubsystem, m_driverController);
-    coral_a.assignLogger(logger);
+    coral_a.setLogger(logger);
     m_driverController.leftBumper().onTrue(coral_a);
   }
 
@@ -168,7 +168,9 @@ public class RobotContainer {
   public Pose2d getPose(){
     return m_driveSubsystem.getPose();
     // logger.logString("Auto", "AprilTag Alignment");
-    // return new AprilTagAlignment(m_driveSubsystem, new AprilTagPoseEstimator(), 3, 0.5);
+    // AprilTagAlignment align = new AprilTagAlignment(m_driveSubsystem, new AprilTagPoseEstimator(), 3, 0.5);
+    // align.setLogger(logger);
+    // return align;
   }
 
   // TODO: Delete

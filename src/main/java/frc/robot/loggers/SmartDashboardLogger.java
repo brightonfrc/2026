@@ -27,7 +27,7 @@ public class SmartDashboardLogger implements GenericLogger {
     }
 
     @Override
-    public void logMessage(String data) {
+    public void echo(String data) {
         SmartDashboard.putString("<none>", data);
         GenericLogger.printLog(data);
     }

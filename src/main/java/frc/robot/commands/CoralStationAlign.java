@@ -21,25 +21,16 @@ import frc.robot.subsystems.AprilTagPoseEstimator;
 import frc.robot.subsystems.DriveSubsystem;
 
 import frc.robot.loggers.*;
+import frc.robot.loggers.loggables.CommandWithLogger;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class CoralStationAlign extends Command {
+public class CoralStationAlign extends CommandWithLogger {
   private DriveSubsystem driveSubsystem;
   private PIDController bearingPIDController;
   private CommandXboxController controller;
   private AprilTagPoseEstimator estimator;
   private PIDController xPIDController;
   private boolean active;
-
-  private GenericLogger logger = new BlankLogger();
-
-  /**
-   * Assign logger. refer to RobotContainer.java for the rationale behind this
-   * @param logger
-   */
-  public void assignLogger(GenericLogger logger) {
-    this.logger = logger; 
-  }
 
   /** 
    * Creates a new CoralStationAlign, which locks the robot's bearing towards the left coral station

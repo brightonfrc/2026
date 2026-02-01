@@ -25,22 +25,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
 import frc.robot.loggers.*;
+import frc.robot.loggers.loggables.SubsystemBaseWithLogger;
 
-public class AprilTagPoseEstimator extends SubsystemBase {
+public class AprilTagPoseEstimator extends SubsystemBaseWithLogger {
   private EstimatedRobotPose prevEstimatedRobotPose = new EstimatedRobotPose(new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)), 0, new ArrayList<PhotonTrackedTarget>(), PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
   private final AprilTagFieldLayout aprilTagFieldLayout;
   private final PhotonCamera cam;
   private final PhotonPoseEstimator photonPoseEstimator;
-
-  private GenericLogger logger = new BlankLogger();
-
-  /**
-   * Assign logger. refer to RobotContainer.java for the rationale behind this
-   * @param logger
-   */
-  public void assignLogger(GenericLogger logger) {
-    this.logger = logger; 
-  }
 
   /** Creates a new AprilTagPoseEstimator. */
   public AprilTagPoseEstimator() {

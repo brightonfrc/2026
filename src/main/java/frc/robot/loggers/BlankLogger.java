@@ -25,5 +25,5 @@ public class BlankLogger implements GenericLogger {
     @Override public void logString(String label, String data) { this.warn(); }
 
     // this one we actually provide a data, so it's not completely useless
-    @Override public void logMessage(String data) { this.warn(data); }
+    @Override public void echo(String data) { this.warn(data); }
 }
