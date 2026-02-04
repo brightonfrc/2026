@@ -6,10 +6,10 @@ package frc.robot.loggers;
  * so that any forseeable refactors are not hell
  */
 public interface GenericLogger {
-    void logDouble(String label, double data);
-    void logInteger(String label, long data);
-    void logBool(String label, boolean data);
-    void logString(String label, String data);
+    void log(String label, double data);
+    void log(String label, long data);
+    void log(String label, boolean data);
+    void log(String label, String data);
     void echo(String data);
 
     /**

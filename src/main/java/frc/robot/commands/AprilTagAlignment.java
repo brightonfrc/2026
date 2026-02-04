@@ -78,15 +78,15 @@ public class AprilTagAlignment extends CommandWithLogger {
     // logger.echo("Aligning");
     // Using displacement from first visible tag
     Optional<Transform3d> pose = poseEstimator.getRobotToSeenTag();
-    logger.logDouble("Command/setPoint/X", offsetX);
-    logger.logDouble("Command/Setpoint/Y", offsetY);
+    logger.log("Command/setPoint/X", offsetX);
+    logger.log("Command/Setpoint/Y", offsetY);
 
     if (pose.isPresent()) {
-      logger.logBool("Tag in view", true);
+      logger.log("Tag in view", true);
       Transform3d transform = pose.get();
-      logger.logDouble("command/t/x", transform.getTranslation().getX());
-      logger.logDouble("command/t/y", transform.getTranslation().getY());
-      logger.logDouble("command/r/yaw", transform.getRotation().getZ());
+      logger.log("command/t/x", transform.getTranslation().getX());
+      logger.log("command/t/y", transform.getTranslation().getY());
+      logger.log("command/r/yaw", transform.getRotation().getZ());
       Translation3d translation = transform.getTranslation();
       Rotation3d rotation = transform.getRotation();
 
@@ -98,27 +98,27 @@ public class AprilTagAlignment extends CommandWithLogger {
       double rotationOutput = rotationPID.calculate(yaw);
 
       if(rotationPID.atSetpoint()){ 
-        logger.logBool("Aligned", true);
+        logger.log("Aligned", true);
         // Move towards set point
         // Use PID  to calculate the movement speed needed to reduce error
         double movementSpeed = movementXPID.calculate(x); // 
         double strafeSpeed = movementYPID.calculate(y);   // 
         
         // Drive the robot towards the AprilTag
-        logger.logDouble("Speed/X", -movementSpeed);
-        logger.logDouble("Speed/Y", strafeSpeed);
+        logger.log("Speed/X", -movementSpeed);
+        logger.log("Speed/Y", strafeSpeed);
         driveSubsystem.drive(-movementSpeed, strafeSpeed, 0, false); 
         // no need to invert strafespeed because y is also inversed (positive = left) 
         // negative movementSpeed because robot needs to drive forwards (not backwards) in order to reduce xDisplacement
       }
       else{ // If not at set point, rotate towards setpoint
-        logger.logBool("Aligned", false);
-        logger.logDouble("Speed/rot", rotationOutput);
+        logger.log("Aligned", false);
+        logger.log("Speed/rot", rotationOutput);
         driveSubsystem.drive(0, 0, -rotationOutput, false);
       }
     }
     else {
-      logger.logBool("Tag in view", false);
+      logger.log("Tag in view", false);
       tagDisappeared = true;
     }
   }

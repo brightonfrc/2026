@@ -69,20 +69,20 @@ public class MoveToPoint extends CommandWithLogger {
       //converting to within range 0 to 360 degrees
       robotBearing+=360;
     }
-    logger.logDouble("Pose/x", driveSubsystem.getPose().getX());
-    logger.logDouble("Pose/y", driveSubsystem.getPose().getY());
-    logger.logBool("MoveToPointActive", true);
+    logger.log("Pose/x", driveSubsystem.getPose().getX());
+    logger.log("Pose/y", driveSubsystem.getPose().getY());
+    logger.log("MoveToPointActive", true);
 
     //convert to radianslogger.logDouble
     robotBearing=Math.toRadians(robotBearing);
-    logger.logDouble("Bearing", robotBearing);
+    logger.log("Bearing", robotBearing);
     double rotSpeed=rotController.calculate(robotBearing);
     // double xSpeed=xController.calculate(-driveSubsystem.getPose().getX());
     // double ySpeed=yController.calculate(-driveSubsystem.getPose().getY());
-    // logger.logDouble("Speed/x", xSpeed);
-    // logger.logDouble("Speed/y", ySpeed);
+    // logger.log("Speed/x", xSpeed);
+    // logger.log("Speed/y", ySpeed);
     //rotation works
-    // logger.logDouble("Speed/rot", rotSpeed);
+    // logger.log("Speed/rot", rotSpeed);
     // driveSubsystem.drive(xSpeed, 0, 0, false);
     // if (xController.atSetpoint()&&yController.atSetpoint()){
     //   driveSubsystem.drive(0, 0, rotSpeed, false);
@@ -94,7 +94,7 @@ public class MoveToPoint extends CommandWithLogger {
   @Override
   public void end(boolean interrupted) {
     driveSubsystem.drive(0, 0, 0, false);
-    logger.logBool("MoveToPointActive", false);
+    logger.log("MoveToPointActive", false);
   }
 
   // Returns true when the command should end.

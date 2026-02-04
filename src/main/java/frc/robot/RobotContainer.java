@@ -167,7 +167,7 @@ public class RobotContainer {
   }
   public Pose2d getPose(){
     return m_driveSubsystem.getPose();
-    // logger.logString("Auto", "AprilTag Alignment");
+    // logger.log("Auto", "AprilTag Alignment");
     // AprilTagAlignment align = new AprilTagAlignment(m_driveSubsystem, new AprilTagPoseEstimator(), 3, 0.5);
     // align.setLogger(logger);
     // return align;
@@ -178,10 +178,10 @@ public class RobotContainer {
     Optional<Transform3d> opt = m_poseEstimator.getRobotToSeenTag();
     if(opt.isPresent()) {
       Transform3d r2t = opt.get();
-      logger.logString("robot2tag", r2t.getTranslation().toString() + "Rotation3d(yaw="+r2t.getRotation().getZ()+", pitch="+r2t.getRotation().getY()+", roll="+r2t.getX()+")");
-      logger.logDouble("robot2tag/t/x", r2t.getTranslation().getX());
-      logger.logDouble("robot2tag/t/y", r2t.getTranslation().getY());
-      logger.logDouble("robot2tag/r/yaw", r2t.getRotation().getZ());
+      logger.log("robot2tag", r2t.getTranslation().toString() + "Rotation3d(yaw="+r2t.getRotation().getZ()+", pitch="+r2t.getRotation().getY()+", roll="+r2t.getX()+")");
+      logger.log("robot2tag/t/x", r2t.getTranslation().getX());
+      logger.log("robot2tag/t/y", r2t.getTranslation().getY());
+      logger.log("robot2tag/r/yaw", r2t.getRotation().getZ());
     }
   }
 

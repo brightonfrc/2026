@@ -66,7 +66,7 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    logger.logString("Auto Path", AutonomousNavConstants.startPos.toString());
+    logger.log("Auto Path", AutonomousNavConstants.startPos.toString());
     m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     m_robotContainer.resetGyro();
     // schedule the autonomous command (example)
@@ -80,7 +80,7 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousPeriodic() {
     
-    logger.logString("Pose", m_robotContainer.getPose().toString());
+    logger.log("Pose", m_robotContainer.getPose().toString());
   }
 
   @Override

@@ -56,7 +56,7 @@ public class AprilTagPoseEstimator extends SubsystemBaseWithLogger {
   public List<PhotonTrackedTarget> getVisibleTags() {
     this.photonPoseEstimator.setReferencePose(this.prevEstimatedRobotPose.estimatedPose);
 
-    logger.logString("latestResult", cam.getLatestResult().toString());
+    logger.log("latestResult", cam.getLatestResult().toString());
 
     Optional<EstimatedRobotPose> pose = photonPoseEstimator.update(cam.getLatestResult());
     if(pose.isPresent()) {
@@ -65,10 +65,10 @@ public class AprilTagPoseEstimator extends SubsystemBaseWithLogger {
       for(int i = 0; i < this.prevEstimatedRobotPose.targetsUsed.size(); i++) {
         result += ":" + this.prevEstimatedRobotPose.targetsUsed.get(i).fiducialId;
       }
-      logger.logString("Visible Tags", result);
+      logger.log("Visible Tags", result);
       return this.prevEstimatedRobotPose.targetsUsed;
     }
-    logger.logString("Visible Tags", "(none)");
+    logger.log("Visible Tags", "(none)");
     return new ArrayList<PhotonTrackedTarget>();
   }
   
@@ -80,10 +80,10 @@ public class AprilTagPoseEstimator extends SubsystemBaseWithLogger {
     this.photonPoseEstimator.setReferencePose(this.prevEstimatedRobotPose.estimatedPose);
 
     List<PhotonTrackedTarget> targets = cam.getLatestResult().targets;
-    // logger.logDouble("latestResult/count", targets.size());
+    // logger.log("latestResult/count", targets.size());
 
     for(int i = 0; i < targets.size(); i++) {
-      // logger.logString("latestResult/"+i, targets.get(i).fiducialId+"@"+targets.get(i).bestCameraToTarget.toString());
+      // logger.log("latestResult/"+i, targets.get(i).fiducialId+"@"+targets.get(i).bestCameraToTarget.toString());
     }
 
     Optional<EstimatedRobotPose> pose = photonPoseEstimator.update(cam.getLatestResult());
@@ -105,7 +105,7 @@ public class AprilTagPoseEstimator extends SubsystemBaseWithLogger {
 
     // Could not work out pose
     Optional<EstimatedRobotPose> globalPose = this.getGlobalPose();
-    // logger.logString("globalPose", globalPose.toString());
+    // logger.log("globalPose", globalPose.toString());
     
     if(globalPose.isEmpty()) return Optional.empty();
 
@@ -121,7 +121,7 @@ public class AprilTagPoseEstimator extends SubsystemBaseWithLogger {
         return Optional.of(new Transform3d(poseDifference.getTranslation(), poseDifference.getRotation()));
       }
     }
-    // logger.logString("tags", tagText);
+    // logger.log("tags", tagText);
 
     // Required tag not on field
     return Optional.empty();

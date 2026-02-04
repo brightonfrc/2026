@@ -75,9 +75,9 @@ public class FieldOrientedDrive extends CommandWithLogger {
             //button no longer pressed, able to toggle slow mode now
             hasToggled=false;
         }
-        logger.logBool("Slow Mode Active", slowModeActive);
+        logger.log("Slow Mode Active", slowModeActive);
         maximumAcceleration=(slowModeActive ? AccelerationLimiterConstants.maximumAccelerationReduced : AccelerationLimiterConstants.maximumAcceleration);
-        logger.logDouble("Goal bearing", goalBearing);
+        logger.log("Goal bearing", goalBearing);
 
         //Both joysticks assumes the right to be bearing 0 and then works clockwise from there. To have bearing 0 be in front, the bearing
         //has to be moved back by 90 degrees/ 1/2 PI
@@ -85,7 +85,7 @@ public class FieldOrientedDrive extends CommandWithLogger {
         if (Math.hypot(xboxController.getRightY(), xboxController.getRightX())>  0.9) {
             joystickTurnBearing = Math.atan2(xboxController.getRightY(), xboxController.getRightX()) + Math.PI/2;
         }
-        logger.logDouble("Turn: Right Joystick bearing", joystickTurnBearing);
+        logger.log("Turn: Right Joystick bearing", joystickTurnBearing);
         //error tolerance of 2 degrees
         if (Math.abs(joystickTurnBearing-goalBearing)>Math.PI/180*FieldOrientedDriveConstants.bearingTolerance){
             goalBearing = -joystickTurnBearing;
@@ -99,18 +99,18 @@ public class FieldOrientedDrive extends CommandWithLogger {
         }
         //converting to radians
         robotBearing = robotBearing / 180 * Math.PI;
-        logger.logDouble("Robot bearing", robotBearing);
+        logger.log("Robot bearing", robotBearing);
 
         //it looks cooked but that's because the controller is mapped kinda funny
         joystickMoveBearing = Math.atan2(xboxController.getLeftX(), -xboxController.getLeftY());
-        logger.logDouble("Drive: Left joystick bearing", joystickMoveBearing);
+        logger.log("Drive: Left joystick bearing", joystickMoveBearing);
 
         //gyro measures angles anticlockwise.
         joystickMoveBearing=joystickMoveBearing+robotBearing-2*Math.PI;
-        logger.logDouble("Drive: Robot Relative bearing", joystickMoveBearing);
+        logger.log("Drive: Robot Relative bearing", joystickMoveBearing);
 
         joystickMoveMagnitude = Math.pow(Math.pow(xboxController.getLeftX(), 2) + Math.pow(xboxController.getLeftY(), 2), 0.5);
-        logger.logDouble("Drive: Left joystick magnitude", joystickMoveMagnitude);
+        logger.log("Drive: Left joystick magnitude", joystickMoveMagnitude);
 
         xSpeed = joystickMoveMagnitude * Math.cos(joystickMoveBearing) * (slowModeActive ? TestingConstants.maximumSpeedReduced : TestingConstants.maximumSpeed);
         if(xSpeed>previousXSpeed+maximumAcceleration){
@@ -120,7 +120,7 @@ public class FieldOrientedDrive extends CommandWithLogger {
             xSpeed=previousXSpeed- maximumAcceleration;
         }
         previousXSpeed=xSpeed;
-        logger.logDouble("xSpeed", xSpeed);
+        logger.log("xSpeed", xSpeed);
 
         ySpeed = joystickMoveMagnitude * Math.sin(joystickMoveBearing) * (slowModeActive ? TestingConstants.maximumSpeedReduced : TestingConstants.maximumSpeed);
         if(ySpeed>previousYSpeed+maximumAcceleration){
@@ -130,10 +130,10 @@ public class FieldOrientedDrive extends CommandWithLogger {
             ySpeed=previousYSpeed-maximumAcceleration;
         }
         previousYSpeed=ySpeed;
-        logger.logDouble("ySpeed", ySpeed);
+        logger.log("ySpeed", ySpeed);
 
         // rotSpeed = 0;
-        logger.logDouble("rotSpeed", rotSpeed);
+        logger.log("rotSpeed", rotSpeed);
         
 
         // NOTE: both of these *may* work, this is still a topic of debate

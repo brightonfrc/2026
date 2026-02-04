@@ -66,13 +66,13 @@ public class CoralStationAlign extends CommandWithLogger {
       if (currentBearing<0){
         currentBearing+=360;
       }
-      // logger.logDouble("robotBearing", currentBearing);
+      // logger.log("robotBearing", currentBearing);
       if (currentBearing<180){
-        // logger.logBool("SetRightCS", false);
+        // logger.log("SetRightCS", false);
         bearingPIDController.setSetpoint(CoralStationAlignConstants.leftCoralStationRot*Math.PI/180);
       }
       else{
-        // logger.logBool("SetRightCS", true);
+        // logger.log("SetRightCS", true);
         bearingPIDController.setSetpoint(CoralStationAlignConstants.rightCoralStationRot*Math.PI/180);
       }
       bearingPIDController.setTolerance(FieldOrientedDriveConstants.bearingTolerance);
@@ -91,8 +91,8 @@ public class CoralStationAlign extends CommandWithLogger {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    logger.logDouble("robotBearing", driveSubsystem.getGyroAngle());
-    logger.logBool("Coral Station Align Active", true);
+    logger.log("robotBearing", driveSubsystem.getGyroAngle());
+    logger.log("Coral Station Align Active", true);
     //check to end command
     if (controller.rightBumper().getAsBoolean()){
       //end command the moment rightBumper is pressed
@@ -115,12 +115,12 @@ public class CoralStationAlign extends CommandWithLogger {
     double joystickMoveMagnitude = Math.hypot(controller.getLeftX(), controller.getLeftY());
     // Optional<Transform3d> pose = estimator.getRobotToSeenTag();
     // if (pose.isEmpty()){
-    //   logger.logBool("April Tag in view", false);
+    //   logger.log("April Tag in view", false);
     //   xSpeed= joystickMoveMagnitude * Math.cos(joystickMoveBearing) * TestingConstants.maximumSpeedReduced;
     // }
     // else{
-    //   logger.logBool("April Tag in view", true);
-    //   logger.logDouble("XDisplacement", pose.get().getX());
+    //   logger.log("April Tag in view", true);
+    //   logger.log("XDisplacement", pose.get().getX());
     //   //reverse xSpeed because drivetrain must drive at positive sped to reduce xdistance
     //   xSpeed= -xPIDController.calculate(pose.get().getX());
     // }
@@ -132,7 +132,7 @@ public class CoralStationAlign extends CommandWithLogger {
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
-    logger.logBool("Coral Station Align Active", false);
+    logger.log("Coral Station Align Active", false);
   }
 
   // Returns true when the command should end.

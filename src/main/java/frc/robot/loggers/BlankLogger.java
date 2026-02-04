@@ -19,10 +19,10 @@ public class BlankLogger implements GenericLogger {
     }
 
     // lots of methods, all of which we just set to warn the user
-    @Override public void logDouble(String label, double data) { this.warn(); }
-    @Override public void logInteger(String label, long data)  { this.warn(); }
-    @Override public void logBool(String label, boolean data)  { this.warn(); }
-    @Override public void logString(String label, String data) { this.warn(); }
+    @Override public void log(String label, double data) { this.warn(); }
+    @Override public void log(String label, long data)  { this.warn(); }
+    @Override public void log(String label, boolean data)  { this.warn(); }
+    @Override public void log(String label, String data) { this.warn(); }
 
     // this one we actually provide a data, so it's not completely useless
     @Override public void echo(String data) { this.warn(data); }

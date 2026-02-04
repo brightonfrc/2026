@@ -7,22 +7,22 @@ public class SmartDashboardLogger implements GenericLogger {
     }
 
     @Override
-    public void logDouble(String label, double data) {
+    public void log(String label, double data) {
         SmartDashboard.putNumber(label, data);
     }
 
     @Override
-    public void logInteger(String label, long data) {
+    public void log(String label, long data) {
         SmartDashboard.putNumber(label, (double) data);
     }
 
     @Override
-    public void logBool(String label, boolean data) {
+    public void log(String label, boolean data) {
         SmartDashboard.putBoolean(label, data);
     }
     
     @Override
-    public void logString(String label, String data) {
+    public void log(String label, String data) {
         SmartDashboard.putString(label, data);
     }
 

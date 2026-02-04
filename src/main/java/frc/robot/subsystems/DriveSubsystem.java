@@ -160,9 +160,9 @@ public class DriveSubsystem extends SubsystemBaseWithLogger {
     //   angle+=360;
     // }
     // pose= new Pose2d(pose.getX(), pose.getY(), Rotation2d.fromDegrees(angle));
-    logger.logDouble("Pose/x", pose.getX());
-    logger.logDouble("Pose/y", pose.getY());
-    logger.logDouble("Pose/rot", pose.getRotation().getDegrees());
+    logger.log("Pose/x", pose.getX());
+    logger.log("Pose/y", pose.getY());
+    logger.log("Pose/rot", pose.getRotation().getDegrees());
     return pose;
   }
   /**Returns currently-estimated pose without current bearing */
