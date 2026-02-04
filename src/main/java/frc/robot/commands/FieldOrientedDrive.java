@@ -29,8 +29,10 @@ public class FieldOrientedDrive extends Command {
     private double previousYSpeed;
 
     private Boolean slowModeActive = true;
-    private Boolean fieldCentricDriving = false;
-    private Boolean hasToggled;
+    private Boolean fieldCentricTurning = false;
+    // to deal with the onpress toggling nonsense
+    private Boolean isAPressed;
+    private Boolean isBPressed;
 
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     /**
@@ -57,29 +59,37 @@ public class FieldOrientedDrive extends Command {
         previousYSpeed=0;
         goalBearing=0;
         slowModeActive=false;
-        hasToggled=false;
+
+        isAPressed = false;
+        isBPressed = false;
     }
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        if (xboxController.a().getAsBoolean() && !hasToggled){
-            slowModeActive=!slowModeActive;
-            hasToggled=true;
+        // toggle slow mode on press of A
+        if (xboxController.a().getAsBoolean() && !isAPressed){
+            slowModeActive = !slowModeActive; // toggle
+            isAPressed = true;
         }
-        if(!xboxController.a().getAsBoolean()){
-            hasToggled=false;
+        // we ignore anything while its pressed, to avoid rapid switching, by having a "hasToggled" flag while A is pressed
+        if (!xboxController.a().getAsBoolean() && isAPressed){ // we only turn isAPressed off if it's on (duh)
+            isAPressed = false;
         }
 
-        if (xboxController.b().getAsBoolean() && !hasToggled) {
-            fieldCentricDriving = !fieldCentricDriving;
-            hasToggled = true;
+        // ditto for field-centric-turning with B press
+        if (xboxController.b().getAsBoolean() && !isBPressed) {
+            fieldCentricTurning = !fieldCentricTurning;
+            isBPressed = true;
         }
-        if (!xboxController.b().getAsBoolean()) {
-            hasToggled = false;
+        if (!xboxController.b().getAsBoolean() && isBPressed) {
+            isBPressed = false;
         }
 
         SmartDashboard.putBoolean("Slow Mode Active", slowModeActive);
-        SmartDashboard.putBoolean("Field Centric Driving", fieldCentricDriving);
+        SmartDashboard.putBoolean("Field Centric Driving", fieldCentricTurning);
+
+        SmartDashboard.putBoolean("A is on?", isAPressed);
+        SmartDashboard.putBoolean("B is on?", isBPressed);
 
         maximumAcceleration=(slowModeActive ? AccelerationLimiterConstants.maximumAccelerationReduced : AccelerationLimiterConstants.maximumAcceleration);
 
@@ -128,16 +138,23 @@ public class FieldOrientedDrive extends Command {
         }
         previousYSpeed = ySpeed;
 
-        if (fieldCentricDriving) {
+        // depending on how you want to control the robot, toggled by button B
+        if (fieldCentricTurning) {
             // Datis and Ella prefers this
-            rotSpeed = bearingPIDController.calculate(robotBearing) * TestingConstants.maximumRotationSpeed;
-
+            rotSpeed = bearingPIDController.calculate(robotBearing);
         } else {
             // William and Sam prefers this
-            rotSpeed = -xboxController.getRightX() * (slowModeActive ? TestingConstants.reducedRotationSpeedRobotOriented : TestingConstants.maximumRotationSpeedRobotOriented);
+            rotSpeed = -xboxController.getRightX();
         }
 
-        driveSubsystem.drive(xSpeed, -ySpeed, -rotSpeed, false);
+        // multiply by slow mode factor
+        rotSpeed *= ( 
+            slowModeActive ?
+            TestingConstants.reducedRotationSpeedRobotOriented :
+            TestingConstants.maximumRotationSpeedRobotOriented
+        );
+
+        driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
         
         SmartDashboard.putNumber("Y Speed", ySpeed);
         SmartDashboard.putNumber("X Speed", xSpeed);
