@@ -26,6 +26,7 @@ import frc.robot.commands.FieldOrientedDrive;
 // import frc.robot.subsystems.ColourSensor;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.IntakeSubsystem;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.revrobotics.ColorSensorV3;
@@ -74,6 +75,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
   private final DriveSubsystem m_driveSubsystem= new DriveSubsystem();
   private final AprilTagPoseEstimator m_poseEstimator = new AprilTagPoseEstimator();
+  private final IntakeSubsystem m_intakeSubsystem = new IntakeSubsystem();
 
   private boolean active = false;
 
@@ -111,6 +113,11 @@ public class RobotContainer {
       new InstantCommand(() -> m_driveSubsystem.resetGyro(), m_driveSubsystem)
     );
     m_driverController.leftBumper().onTrue(new CoralStationAlign(m_driveSubsystem, m_driverController));
+
+    // Intake bindings
+    m_driverController.rightBumper().whileTrue(m_intakeSubsystem.intakeCommand());
+    m_driverController.y().onTrue(m_intakeSubsystem.shootCommand().withTimeout(2.0));
+    m_driverController.b().whileTrue(m_intakeSubsystem.outtakeCommand());
   }
 
   /**

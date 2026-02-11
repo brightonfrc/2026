@@ -136,10 +136,16 @@ public static double rotationkD=0.0;
 // public static final int armCANID=13;
 // public static final int intakeCanID=14;
 
+
+//added  intake constants
 public static class IntakeConstants{
 public static final int intakeCanID=14;
 public static final double intakePower=-0.6; //0.4
 public static final double outtakePower=0.3;//0.2;
+
+// Accelerator/shooter motor
+public static final int acceleratorCanID=16;
+public static final double acceleratorPower=0.8;
 }
 public static class AngleLimitConstants{
 //all in degrees, remember to convert to radians
