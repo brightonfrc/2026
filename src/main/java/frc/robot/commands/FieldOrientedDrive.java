@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-/** An example command that uses an example subsystem. */
+
 public class FieldOrientedDrive extends Command {
     private DriveSubsystem driveSubsystem;
     private CommandXboxController xboxController;
@@ -29,7 +29,10 @@ public class FieldOrientedDrive extends Command {
     private double previousYSpeed;
 
     private Boolean slowModeActive = true;
-    private Boolean hasToggled;
+    private Boolean fieldCentricTurning = false;
+    // to deal with the onpress toggling nonsense
+    private Boolean isAPressed;
+    private Boolean isBPressed;
 
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     /**
@@ -43,6 +46,7 @@ public class FieldOrientedDrive extends Command {
         // Use addRequirements() here to declare subsystem dependencies.
         addRequirements(driveSubsystem);
     }
+
     // Called when the command is initially scheduled.
     @Override
     public void initialize() {
@@ -55,98 +59,115 @@ public class FieldOrientedDrive extends Command {
         previousYSpeed=0;
         goalBearing=0;
         slowModeActive=false;
-        hasToggled=false;
+
+        isAPressed = false;
+        isBPressed = false;
     }
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        if (xboxController.a().getAsBoolean()&&hasToggled==false){
-            slowModeActive=!slowModeActive;
-            hasToggled=true;
+        // toggle slow mode on press of A
+        if (xboxController.a().getAsBoolean() && !isAPressed){
+            slowModeActive = !slowModeActive; // toggle
+            isAPressed = true;
         }
-        if(xboxController.a().getAsBoolean()==false){
-            //button no longer pressed, able to toggle slow mode now
-            hasToggled=false;
+        // we ignore anything while its pressed, to avoid rapid switching, by having a "hasToggled" flag while A is pressed
+        if (!xboxController.a().getAsBoolean() && isAPressed){ // we only turn isAPressed off if it's on (duh)
+            isAPressed = false;
         }
+
+        // ditto for field-centric-turning with B press
+        if (xboxController.b().getAsBoolean() && !isBPressed) {
+            fieldCentricTurning = !fieldCentricTurning;
+            isBPressed = true;
+        }
+        if (!xboxController.b().getAsBoolean() && isBPressed) {
+            isBPressed = false;
+        }
+
         SmartDashboard.putBoolean("Slow Mode Active", slowModeActive);
+        SmartDashboard.putBoolean("Field Centric Driving", fieldCentricTurning);
+
+        SmartDashboard.putBoolean("A is on?", isAPressed);
+        SmartDashboard.putBoolean("B is on?", isBPressed);
+
         maximumAcceleration=(slowModeActive ? AccelerationLimiterConstants.maximumAccelerationReduced : AccelerationLimiterConstants.maximumAcceleration);
-        // SmartDashboard.putNumber("Goal bearing", goalBearing);
 
         //Both joysticks assumes the right to be bearing 0 and then works clockwise from there. To have bearing 0 be in front, the bearing
         //has to be moved back by 90 degrees/ 1/2 PI
         //If right joystick is not being moved retain previous bearing
-        if (Math.hypot(xboxController.getRightY(), xboxController.getRightX())>  0.9) {
+        if (Math.hypot(xboxController.getRightY(), xboxController.getRightX()) > 0.9) {
             joystickTurnBearing = Math.atan2(xboxController.getRightY(), xboxController.getRightX()) + Math.PI/2;
         }
-        // SmartDashboard.putNumber("Turn: Right Joystick bearing", joystickTurnBearing);
         //error tolerance of 2 degrees
-        if (Math.abs(joystickTurnBearing-goalBearing)>Math.PI/180*FieldOrientedDriveConstants.bearingTolerance){
+        if (Math.abs(joystickTurnBearing - goalBearing) > Math.PI/180 * FieldOrientedDriveConstants.bearingTolerance){
             goalBearing = -joystickTurnBearing;
             bearingPIDController.reset();
             bearingPIDController.setSetpoint(goalBearing);
         }
         robotBearing = driveSubsystem.getGyroAngle();
-        if (robotBearing<0){
+        if (robotBearing < 0){
             //converting to within range 0 to 360 degrees
-            robotBearing+=360;
+            robotBearing += 360;
         }
         //converting to radians
         robotBearing = robotBearing / 180 * Math.PI;
-        // SmartDashboard.putNumber("Robot bearing", robotBearing);
+
         //it looks cooked but that's because the controller is mapped kinda funny
         joystickMoveBearing = Math.atan2(xboxController.getLeftX(), -xboxController.getLeftY());
-        // SmartDashboard.putNumber("Drive: Left joystick bearing", joystickMoveBearing);
-        //gyro measures angles anticlockwise.
-        joystickMoveBearing=joystickMoveBearing+robotBearing-2*Math.PI;
+        joystickMoveBearing = joystickMoveBearing + robotBearing - 2*Math.PI;
 
-        // SmartDashboard.putNumber("Drive: Robot Relative bearing", joystickMoveBearing);
         joystickMoveMagnitude = Math.pow(Math.pow(xboxController.getLeftX(), 2) + Math.pow(xboxController.getLeftY(), 2), 0.5);
-        // SmartDashboard.putNumber("Drive: Left joystick magnitude", joystickMoveMagnitude);
 
+        // limit acceleration
         xSpeed = joystickMoveMagnitude * Math.cos(joystickMoveBearing) * (slowModeActive ? TestingConstants.maximumSpeedReduced : TestingConstants.maximumSpeed);
-        if(xSpeed>previousXSpeed+maximumAcceleration){
-            xSpeed=previousXSpeed+maximumAcceleration;
+        if(xSpeed > previousXSpeed + maximumAcceleration){
+            xSpeed = previousXSpeed + maximumAcceleration;
         }
-        else if (xSpeed<previousXSpeed- maximumAcceleration){
-            xSpeed=previousXSpeed- maximumAcceleration;
+        else if (xSpeed < previousXSpeed - maximumAcceleration){
+            xSpeed = previousXSpeed - maximumAcceleration;
         }
-        previousXSpeed=xSpeed;
-        // SmartDashboard.putNumber("xSpeed", xSpeed);
+        previousXSpeed = xSpeed;
 
         ySpeed = joystickMoveMagnitude * Math.sin(joystickMoveBearing) * (slowModeActive ? TestingConstants.maximumSpeedReduced : TestingConstants.maximumSpeed);
-        if(ySpeed>previousYSpeed+maximumAcceleration){
-            ySpeed=previousYSpeed+ maximumAcceleration;
+        if(ySpeed > previousYSpeed + maximumAcceleration){
+            ySpeed = previousYSpeed + maximumAcceleration;
         }
-        else if (ySpeed<previousYSpeed-maximumAcceleration){
-            ySpeed=previousYSpeed-maximumAcceleration;
+        else if (ySpeed < previousYSpeed - maximumAcceleration){
+            ySpeed = previousYSpeed - maximumAcceleration;
         }
-        previousYSpeed=ySpeed;
-        // SmartDashboard.putNumber("ySpeed", ySpeed);
+        previousYSpeed = ySpeed;
 
-        // rotSpeed = 0;
-        rotSpeed = bearingPIDController.calculate(robotBearing) * TestingConstants.maximumRotationSpeed;
-        // SmartDashboard.putNumber("rotSpeed", rotSpeed);
-        
+        // depending on how you want to control the robot, toggled by button B
+        if (fieldCentricTurning) {
+            // Datis and Ella prefers this
+            rotSpeed = bearingPIDController.calculate(robotBearing);
+        } else {
+            // William and Sam prefers this
+            rotSpeed = -xboxController.getRightX();
+        }
 
-        //Datis and Ella prefers this
+        // multiply by slow mode factor
+        rotSpeed *= ( 
+            slowModeActive ?
+            TestingConstants.reducedRotationSpeedRobotOriented :
+            TestingConstants.maximumRotationSpeedRobotOriented
+        );
+
         driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
-
-        // William and Sam prefers this
-        //driveSubsystem.drive(xSpeed, -ySpeed, -xboxController.getRightX()*(slowModeActive ? TestingConstants.reducedRotationSpeedRobotOriented : TestingConstants.maximumRotationSpeedRobotOriented), false);
         
-        // Emergency stop button (Not needed)
-        // if(xboxController.rightBumper().getAsBoolean()){
-        //     driveSubsystem.drive(0, 0, 0, false);
-        // } else{
-            
-        // }
+        SmartDashboard.putNumber("Y Speed", ySpeed);
+        SmartDashboard.putNumber("X Speed", xSpeed);
+        SmartDashboard.putNumber("Rotational Speed", rotSpeed);
+
+        SmartDashboard.putNumber("Robot Heading", robotBearing);
     }
-    // Called once the command ends or is interrupted.
+
     @Override
     public void end(boolean interrupted) {
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
-    // Returns true when the command should end.
+
     @Override
     public boolean isFinished() {
         return false;
