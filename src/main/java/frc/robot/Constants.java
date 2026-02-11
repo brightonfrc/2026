@@ -60,13 +60,13 @@ public static final double kRotD = 0.0;
 }
 
 public static class AutonPathPlannerConstants{
-public static double translationkP=0.4;
+public static double translationkP=0.0;
 public static double translationkI=0;
-public static double translationkD=0.405;
+public static double translationkD=0.0;
 
-public static double rotationkP=0.55;
+public static double rotationkP=0.0;
 public static double rotationkI=0.0;
-public static double rotationkD=0.2;
+public static double rotationkD=0.0;
 }
 
 public static class AutonomousNavConstants{
