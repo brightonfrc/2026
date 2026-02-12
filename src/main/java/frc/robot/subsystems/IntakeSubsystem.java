@@ -72,6 +72,20 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   /**
+   * Command factory: reverses both motors at low power to unjam a stuck ball.
+   * For testing/debugging only - not bound to any button by default.
+   *
+   * @return a command that reverses both motors
+   */
+  public Command reverseCommand() {
+    // runs both motors in reverse to push a stuck ball back out
+    return run(() -> {
+      setIntake(-IntakeConstants.intakePower);
+      setAccelerator(-IntakeConstants.acceleratorPower);
+    }).finallyDo(interrupted -> stop());
+  }
+
+  /**
    * Command factory: stops all motors.
    *
    * @return a command that stops the intake
