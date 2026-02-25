@@ -12,35 +12,17 @@ import frc.robot.commands.FieldOrientedDrive;
 import frc.robot.subsystems.DriveSubsystem;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.revrobotics.ColorSensorV3;
 
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.util.Color;
 import frc.robot.commands.StopRobot;
-import frc.robot.subsystems.DriveSubsystem;
-import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj.AnalogEncoder;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.subsystems.AprilTagPoseEstimator;
 
-import java.util.List;
 import java.util.Optional;
 
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.targeting.PhotonTrackedTarget;
-
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
