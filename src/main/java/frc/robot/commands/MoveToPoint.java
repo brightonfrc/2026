@@ -6,18 +6,14 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.AutonomousNavConstants;
-import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.subsystems.DriveSubsystem;
 
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class MoveToPoint extends Command {
   private DriveSubsystem driveSubsystem;
-  private PIDController xController;
-  private PIDController yController;
   private PIDController rotController;
   private double goal; 
 //   public MoveToPoint(DriveSubsystem driveSubsystem, Pose2d goal) {

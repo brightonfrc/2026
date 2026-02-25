@@ -5,63 +5,26 @@
 package frc.robot;
 
 
-import frc.robot.Constants.ColourSensorConstants;
-
-
-import frc.robot.Constants.AutonomousNavConstants;
-import frc.robot.Constants.ChoreoConstants;
-import frc.robot.Constants.CoralStationAlignConstants;
-import frc.robot.Constants.ArmConstants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.LiftConstants;
 import frc.robot.Constants.OIConstants;
-import frc.robot.Constants.WinchConstants;
-import frc.robot.Constants.LiftConstants.Height;
-import frc.robot.Constants.AprilTagAlignmentConstants;
-import frc.robot.commands.AprilTagAlignment;
-import frc.robot.commands.Autos;
 import frc.robot.commands.CoralStationAlign;
-import frc.robot.commands.ExampleCommand;
 import frc.robot.commands.FieldOrientedDrive;
-// import frc.robot.subsystems.ColourSensor;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ExampleSubsystem;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.revrobotics.ColorSensorV3;
 
-import edu.wpi.first.wpilibj.I2C;
-import edu.wpi.first.wpilibj.util.Color;
-import frc.robot.commands.MoveToPoint;
 import frc.robot.commands.StopRobot;
-import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ExampleSubsystem;
-import choreo.auto.AutoFactory;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 
-import com.revrobotics.spark.SparkMax;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-
-import edu.wpi.first.wpilibj.AnalogEncoder;
-import edu.wpi.first.wpilibj.DutyCycleEncoder;
-import edu.wpi.first.wpilibj.XboxController;
 import frc.robot.subsystems.AprilTagPoseEstimator;
 
-import java.util.List;
 import java.util.Optional;
-
-import org.photonvision.EstimatedRobotPose;
-import org.photonvision.targeting.PhotonTrackedTarget;
-
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import java.util.List;
+import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -75,16 +38,14 @@ public class RobotContainer {
   private final DriveSubsystem m_driveSubsystem= new DriveSubsystem();
   private final AprilTagPoseEstimator m_poseEstimator = new AprilTagPoseEstimator();
 
-  private boolean active = false;
-
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
   new CommandXboxController(OIConstants.kDriverControllerPort);
-  private final CommandPS4Controller m_manualLiftController= new CommandPS4Controller(OIConstants.kManualLiftControllerPort);
   private final FieldOrientedDrive fieldOrientedDrive= new FieldOrientedDrive(m_driveSubsystem, m_driverController);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
+    configureBindings();
     m_driveSubsystem.setDefaultCommand(fieldOrientedDrive);
   }
 
@@ -148,8 +109,13 @@ public class RobotContainer {
     // return new AprilTagAlignment(m_driveSubsystem, new AprilTagPoseEstimator(), 3, 0.5);
   }
 
-  // TODO: Delete
   public void printPose() {
+    List<PhotonTrackedTarget> tags = m_poseEstimator.getVisibleTags();
+    SmartDashboard.putBoolean("robot2tag/visible", !tags.isEmpty());
+    SmartDashboard.putNumber("robot2tag/tagId", tags.isEmpty() ? -1 : tags.get(0).fiducialId);
+    SmartDashboard.putNumber("robot2tag/t/x", Double.NaN);
+    SmartDashboard.putNumber("robot2tag/t/y", Double.NaN);
+    SmartDashboard.putNumber("robot2tag/r/yaw", Double.NaN);
     Optional<Transform3d> opt = m_poseEstimator.getRobotToSeenTag();
     if(opt.isPresent()) {
       Transform3d r2t = opt.get();
@@ -160,5 +126,9 @@ public class RobotContainer {
     }
   }
 
-}
+  public void simulationPeriodic() {
+    m_driveSubsystem.simulationPeriodic();
+    m_poseEstimator.simulationPeriodic(m_driveSubsystem.getPose());
+  }
 
+}

@@ -4,8 +4,6 @@
 
 package frc.robot;
 
-import java.time.Year;
-
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -14,7 +12,6 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.util.Units;
 import frc.robot.Constants.LiftConstants.Height;
 
 /**
@@ -99,7 +96,6 @@ Testing
 
 //remember that the gyro is inverted, so 90 degrees is to the left
 //bearing of robot when first Choreo Path Ends.
-// TODO : ASSIGN THESE VALUES AS NEEDED
 public static double endRotOne = switch (startPos) {
 case Left -> 300; // Should be 60 to the right, but just don't want it to go out of bounds...
 case Right -> 60;
@@ -409,7 +405,6 @@ public static final double kFreeSpeedRpm = 5676;
 }
 
 public static final class CVConstants {
-// TODO: Fill
 // Before using AprilTagPoseEstimator, ensure the camera is calibrated, in 3D mode, and on an AprilTag pipeline at https://photonvision.local:5800
 public static final String kCameraName = "Arducam_OV9281_USB_Camera"; // Options: [USB]C270_HD_WEBCAM, [Innomaker]Arducam_OV9281_USB_Camera
 public static final Transform3d kRobotToCamera = new Transform3d(new Translation3d(0.330, 0, 0.125), new Rotation3d(0,0,0)); // Remember y is sideways, x is forwards for our code
