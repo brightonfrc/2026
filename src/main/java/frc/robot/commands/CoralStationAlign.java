@@ -4,21 +4,13 @@
 
 package frc.robot.commands;
 
-import java.lang.reflect.Field;
-import java.util.Optional;
-
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
-import frc.robot.Robot;
-import frc.robot.RobotContainer;
-import frc.robot.Constants.AprilTagAlignmentConstants;
 import frc.robot.Constants.CoralStationAlignConstants;
 import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.Constants.TestingConstants;
-import frc.robot.subsystems.AprilTagPoseEstimator;
 import frc.robot.subsystems.DriveSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
@@ -26,8 +18,6 @@ public class CoralStationAlign extends Command {
   private DriveSubsystem driveSubsystem;
   private PIDController bearingPIDController;
   private CommandXboxController controller;
-  private AprilTagPoseEstimator estimator;
-  private PIDController xPIDController;
   private boolean active;
   /** 
    * Creates a new CoralStationAlign, which locks the robot's bearing towards the left coral station

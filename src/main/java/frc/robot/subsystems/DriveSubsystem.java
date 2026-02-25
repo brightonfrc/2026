@@ -7,32 +7,28 @@ package frc.robot.subsystems;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.Robot;
 import frc.robot.Constants.AutonPathPlannerConstants;
-import frc.robot.Constants.ChoreoConstants;
 import frc.robot.Constants.DriveConstants;
-import frc.robot.Constants.FieldOrientedDriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.studica.frc.AHRS;
-import choreo.trajectory.SwerveSample;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.SPI;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.RobotBase;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.path.PathPlannerPath;
 
 
 public class DriveSubsystem extends SubsystemBase {
@@ -78,6 +74,11 @@ public class DriveSubsystem extends SubsystemBase {
           m_rearLeft.getPosition(),
           m_rearRight.getPosition()
       });
+
+  // Simple pose integration for simulation (no drivetrain physics)
+  private Pose2d m_simPose = new Pose2d();
+  private ChassisSpeeds m_lastCommandedSpeeds = new ChassisSpeeds();
+  private double m_lastSimTimeSec = Timer.getFPGATimestamp();
   
   //for Choreo
   // private final PIDController xController = new PIDController(ChoreoConstants.translationkP, ChoreoConstants.translationkI, ChoreoConstants.translationkD);
@@ -86,6 +87,11 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
+    if (RobotBase.isSimulation()) {
+      // Skip PathPlanner GUI config loading in sim; it requires deploy files.
+      HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
+      return;
+    }
     RobotConfig config;
     try{
       config = RobotConfig.fromGUISettings();
@@ -152,7 +158,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    Pose2d pose= m_odometry.getPoseMeters();
+    Pose2d pose = RobotBase.isSimulation() ? m_simPose : m_odometry.getPoseMeters();
     // double angle =m_gyro.getAngle()%360;
     // if (angle<0){
     //   angle+=360;
@@ -176,7 +182,11 @@ public class DriveSubsystem extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-    
+    if (RobotBase.isSimulation()) {
+      m_simPose = pose;
+      m_lastSimTimeSec = Timer.getFPGATimestamp();
+      return;
+    }
     m_odometry.resetPosition(
         Rotation2d.fromDegrees(m_gyro.getAngle()%360),
         new SwerveModulePosition[] {
@@ -208,6 +218,13 @@ public class DriveSubsystem extends SubsystemBase {
             ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
                 Rotation2d.fromDegrees(m_gyro.getAngle()%360))
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
+    // Store the robot-relative commanded speeds for sim pose integration
+    m_lastCommandedSpeeds =
+        fieldRelative
+            ? ChassisSpeeds.fromFieldRelativeSpeeds(
+                xSpeedDelivered, ySpeedDelivered, rotDelivered,
+                Rotation2d.fromDegrees(m_gyro.getAngle()%360))
+            : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered);
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
     m_frontLeft.setDesiredState(swerveModuleStates[0]);
@@ -240,6 +257,26 @@ public class DriveSubsystem extends SubsystemBase {
     m_frontRight.setDesiredState(desiredStates[1]);
     m_rearLeft.setDesiredState(desiredStates[2]);
     m_rearRight.setDesiredState(desiredStates[3]);
+  }
+
+  @Override
+  public void simulationPeriodic() {
+    if (!RobotBase.isSimulation()) {
+      return;
+    }
+    double now = Timer.getFPGATimestamp();
+    double dt = now - m_lastSimTimeSec;
+    if (dt <= 0) {
+      return;
+    }
+    m_lastSimTimeSec = now;
+
+    // Integrate robot-relative chassis speeds into field pose
+    Twist2d twist = new Twist2d(
+        m_lastCommandedSpeeds.vxMetersPerSecond * dt,
+        m_lastCommandedSpeeds.vyMetersPerSecond * dt,
+        m_lastCommandedSpeeds.omegaRadiansPerSecond * dt);
+    m_simPose = m_simPose.exp(twist);
   }
 
   /** Resets the drive encoders to currently read a position of 0. */

@@ -1,7 +1,6 @@
 // Copyright (c) FIRST and other WPILib contributors.
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
-//
 
 package frc.robot.subsystems;
 
@@ -12,29 +11,34 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
+import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
-import org.photonvision.sim.*;
-import edu.wpi.first.math.geometry.*;
-
-public class AprilTagPoseEstimator extends SubsystemBase {  
+public class AprilTagPoseEstimator extends SubsystemBase {
   private EstimatedRobotPose prevEstimatedRobotPose = new EstimatedRobotPose(new Pose3d(new Translation3d(0, 0, 0), new Rotation3d(0, 0, 0)), 0, new ArrayList<PhotonTrackedTarget>(), PhotonPoseEstimator.PoseStrategy.LOWEST_AMBIGUITY);
   private final AprilTagFieldLayout aprilTagFieldLayout;
   private final PhotonCamera cam;
   private final PhotonPoseEstimator photonPoseEstimator;
-  private VisionSystemSim visionSim;
+  private final VisionSystemSim visionSim;
+  private final PhotonCameraSim camSim;
+  private boolean streamNamesPrinted = false;
 
   /** Creates a new AprilTagPoseEstimator. */
   public AprilTagPoseEstimator() {
@@ -45,41 +49,69 @@ public class AprilTagPoseEstimator extends SubsystemBase {
     this.cam = new PhotonCamera(Constants.CVConstants.kCameraName);
 
     // Construct PhotonPoseEstimator
-    this.photonPoseEstimator = new PhotonPoseEstimator(this.aprilTagFieldLayout, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, Constants.CVConstants.kRobotToCamera);
-    
-    if (DriverStation.isHybrid()) { // Check if running in simulation mode
-        setupVisionSimulator();
+    this.photonPoseEstimator =
+        new PhotonPoseEstimator(this.aprilTagFieldLayout, Constants.CVConstants.kRobotToCamera);
+
+    if (RobotBase.isSimulation()) {
+      SimCameraProperties cameraProp = new SimCameraProperties();
+      cameraProp.setCalibration(640, 480, Rotation2d.fromDegrees(100));
+      cameraProp.setCalibError(0.25, 0.08);
+      cameraProp.setFPS(20);
+      cameraProp.setAvgLatencyMs(35);
+      cameraProp.setLatencyStdDevMs(5);
+
+      this.visionSim = new VisionSystemSim(Constants.CVConstants.kCameraName);
+      this.visionSim.addAprilTags(this.aprilTagFieldLayout);
+
+      this.camSim = new PhotonCameraSim(this.cam, cameraProp);
+      this.visionSim.addCamera(this.camSim, Constants.CVConstants.kRobotToCamera);
+      // Enable simulated camera streams and wireframe overlay.
+      this.camSim.enableRawStream(true);
+      this.camSim.enableProcessedStream(true);
+      this.camSim.enableDrawWireframe(true);
+      this.camSim.setWireframeResolution(0.1);
+    } else {
+      this.visionSim = null;
+      this.camSim = null;
     }
-  
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    if (DriverStation.isHybrid()) { // Ensure this runs only in simulation
-        Pose3d robotPoseMeters = new Pose3d(); // Setup robotPose using your logic
-        visionSim.update(robotPoseMeters);
-    }    
-        // Getting the latest camera result periodically
-    if (cam.getLatestResult() != null) {
-      SmartDashboard.putString("Camera Status", "Streaming");
+    // Update dashboard entries every loop so sim shows tag info.
+    getVisibleTags();
+  }
 
-            // You can also check if there are visible targets and log them
-      getVisibleTags();
-    } else {
-      SmartDashboard.putString("Camera Status", "Not Streaming");
+  public void simulationPeriodic(Pose2d robotPose) {
+    if (visionSim == null) {
+      return;
     }
+    if (!streamNamesPrinted) {
+      String camName = cam.getName();
+      System.out.println("[PhotonVision Sim] Camera streams:");
+      System.out.println("  - http://localhost:1181/stream.mjpg?name=" + camName + "-raw");
+      System.out.println("  - http://localhost:1181/stream.mjpg?name=" + camName + "-processed");
+      streamNamesPrinted = true;
+      SmartDashboard.putData("Sim/VisionSystemSimField", visionSim.getDebugField());
+    }
+    visionSim.getCameraPose(camSim).ifPresent(pose -> {
+      SmartDashboard.putString("Sim/CameraPose", pose.toString());
+    });
+    SmartDashboard.putString("Sim/RobotPose", visionSim.getRobotPose().toString());
+    visionSim.update(robotPose);
   }
 
   /**
    * Get the currently-visible AprilTags on the pitch, as a list.
    */
   public List<PhotonTrackedTarget> getVisibleTags() {
-    this.photonPoseEstimator.setReferencePose(this.prevEstimatedRobotPose.estimatedPose);
+    PhotonPipelineResult latestResult = getLatestResult();
+    SmartDashboard.putString("latestResult", latestResult.toString());
 
-    SmartDashboard.putString("latestResult", cam.getLatestResult().toString());
-
-    Optional<EstimatedRobotPose> pose = photonPoseEstimator.update(cam.getLatestResult());
+    Optional<EstimatedRobotPose> pose =
+        photonPoseEstimator.estimateClosestToReferencePose(
+            latestResult, this.prevEstimatedRobotPose.estimatedPose);
     if(pose.isPresent()) {
       this.prevEstimatedRobotPose = pose.get();
       String result = "";
@@ -98,16 +130,17 @@ public class AprilTagPoseEstimator extends SubsystemBase {
    * @return Optional.empty if no AprilTags can be seen and thus the position cannot be derived, or Optional<the robot's pose>.
    */
   public Optional<EstimatedRobotPose> getGlobalPose() {
-    this.photonPoseEstimator.setReferencePose(this.prevEstimatedRobotPose.estimatedPose);
-
-    List<PhotonTrackedTarget> targets = cam.getLatestResult().targets;
+    PhotonPipelineResult latestResult = getLatestResult();
+    List<PhotonTrackedTarget> targets = latestResult.targets;
     // SmartDashboard.putNumber("latestResult/count", targets.size());
 
     for(int i = 0; i < targets.size(); i++) {
       // SmartDashboard.putString("latestResult/"+i, targets.get(i).fiducialId+"@"+targets.get(i).bestCameraToTarget.toString());
     }
 
-    Optional<EstimatedRobotPose> pose = photonPoseEstimator.update(cam.getLatestResult());
+    Optional<EstimatedRobotPose> pose =
+        photonPoseEstimator.estimateClosestToReferencePose(
+            latestResult, this.prevEstimatedRobotPose.estimatedPose);
 
     if(pose.isPresent()) {
       this.prevEstimatedRobotPose = pose.get();
@@ -123,60 +156,68 @@ public class AprilTagPoseEstimator extends SubsystemBase {
    * @return The transform from the robot to the tag.
    */
   public Optional<Transform3d> getRobotToTag(int tagID) {
-  // Get robot pose in field coordinates
-  Optional<EstimatedRobotPose> globalPose = getGlobalPose();
-  if (globalPose.isEmpty()) return Optional.empty();
 
-  Pose3d robotPose = globalPose.get().estimatedPose;
+    // Could not work out pose
+    Optional<EstimatedRobotPose> globalPose = this.getGlobalPose();
+    // SmartDashboard.putString("globalPose", globalPose.toString());
+    
+    if(globalPose.isEmpty()) return Optional.empty();
 
-  // Get tag pose directly by ID
-  Optional<Pose3d> tagPoseOpt = aprilTagFieldLayout.getTagPose(tagID);
-  if (tagPoseOpt.isEmpty()) return Optional.empty();
+    // Look for tag
+    List<AprilTag> tags = this.aprilTagFieldLayout.getTags();
+    for(AprilTag tag : tags) {
+      if(tag.ID == tagID) {
+        Pose3d poseDifference = tag.pose.relativeTo(globalPose.get().estimatedPose);
+        // double yawRobotToTag = tag.pose.getRotation().getZ() - poseDifferenceFieldCoordinates.getRotation().getZ();
+        // Transform3d poseDifferenceTagCoordinates = poseDifferenceFieldCoordinates.;
+        return Optional.of(new Transform3d(poseDifference.getTranslation(), poseDifference.getRotation()));
+      }
+    }
+    // SmartDashboard.putString("tags", tagText);
 
-  Pose3d tagPose = tagPoseOpt.get();
-
-  // Compute robot -> tag transform
-  return Optional.of(new Transform3d(robotPose, tagPose));
-}
+    // Required tag not on field
+    return Optional.empty();
+  }
 /**
  * Get the transform from the robot to the first visible AprilTag.
  * @return The transform from the robot to the tag.
  */
   public Optional<Transform3d> getRobotToSeenTag() {
-    List<PhotonTrackedTarget> tags = this.getVisibleTags();
-    if(tags.size() == 0) {
+    PhotonPipelineResult latestResult = getLatestResult();
+    Optional<PhotonTrackedTarget> best = selectBestTarget(latestResult.targets);
+    if(best.isEmpty()) {
       return Optional.empty();
     } else {
-      PhotonTrackedTarget tag = tags.get(0);
-      return this.getRobotToTag(tag.fiducialId);
+      return this.getRobotToTag(best.get().fiducialId);
     }
   }
-  
-  
-  private void setupVisionSimulator() {
-    visionSim = new VisionSystemSim("main");
-    TargetModel targetModel = new TargetModel(0.5, 0.25);
-    Pose3d targetPose = new Pose3d(16, 4, 2, new Rotation3d(0, 0, Math.PI));
-    VisionTargetSim visionTarget = new VisionTargetSim(targetPose, targetModel);
-    visionSim.addVisionTargets(visionTarget);
 
-    AprilTagFieldLayout tagLayout = AprilTagFieldLayout.loadFromResource(AprilTagFields.kDefaultField.m_resourceFile);
-    visionSim.addAprilTags(tagLayout);
-
-    SimCameraProperties cameraProp = new SimCameraProperties();
-    cameraProp.setCalibration(640, 480, Rotation2d.fromDegrees(100));
-    cameraProp.setCalibError(0.25, 0.08);
-    cameraProp.setFPS(20);
-    cameraProp.setAvgLatencyMs(35);
-    cameraProp.setLatencyStdDevMs(5);
-
-    PhotonCamera camera = new PhotonCamera(Constants.CVConstants.kCameraName);
-    PhotonCameraSim cameraSim = new PhotonCameraSim(camera, cameraProp);
-
-    Translation3d robotToCameraTrl = new Translation3d(0.1, 0, 0.5);
-    Rotation3d robotToCameraRot = new Rotation3d(0, Math.toRadians(-15), 0);
-    Transform3d robotToCamera = new Transform3d(robotToCameraTrl, robotToCameraRot);
-    visionSim.addCamera(cameraSim, robotToCamera);
+  private PhotonPipelineResult getLatestResult() {
+    return cam.getLatestResult();
   }
-  
+
+  private Optional<PhotonTrackedTarget> selectBestTarget(List<PhotonTrackedTarget> targets) {
+    if (targets == null || targets.isEmpty()) {
+      return Optional.empty();
+    }
+    PhotonTrackedTarget best = null;
+    double bestAmbiguity = Double.POSITIVE_INFINITY;
+    double bestDistance = Double.POSITIVE_INFINITY;
+    for (PhotonTrackedTarget t : targets) {
+      double ambiguity = t.getPoseAmbiguity();
+      double distance = t.getBestCameraToTarget().getTranslation().getNorm();
+      // Prefer lowest ambiguity; if ambiguity is unavailable (-1), treat as worse.
+      if (ambiguity < 0) {
+        ambiguity = Double.POSITIVE_INFINITY;
+      }
+      if (best == null
+          || ambiguity < bestAmbiguity
+          || (ambiguity == bestAmbiguity && distance < bestDistance)) {
+        best = t;
+        bestAmbiguity = ambiguity;
+        bestDistance = distance;
+      }
+    }
+    return Optional.ofNullable(best);
+  }
 }
