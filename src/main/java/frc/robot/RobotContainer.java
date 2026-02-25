@@ -5,19 +5,7 @@
 package frc.robot;
 
 
-import frc.robot.Constants.ColourSensorConstants;
-
-
-import frc.robot.Constants.AutonomousNavConstants;
-import frc.robot.Constants.ChoreoConstants;
-import frc.robot.Constants.CoralStationAlignConstants;
-import frc.robot.Constants.ArmConstants;
-import frc.robot.Constants.IntakeConstants;
-import frc.robot.Constants.LiftConstants;
 import frc.robot.Constants.OIConstants;
-import frc.robot.Constants.WinchConstants;
-import frc.robot.Constants.LiftConstants.Height;
-import frc.robot.Constants.AprilTagAlignmentConstants;
 import frc.robot.commands.CoralStationAlign;
 import frc.robot.commands.FieldOrientedDrive;
 // import frc.robot.subsystems.ColourSensor;
@@ -28,7 +16,6 @@ import com.revrobotics.ColorSensorV3;
 
 import edu.wpi.first.wpilibj.I2C;
 import edu.wpi.first.wpilibj.util.Color;
-import frc.robot.commands.MoveToPoint;
 import frc.robot.commands.StopRobot;
 import frc.robot.subsystems.DriveSubsystem;
 import choreo.auto.AutoFactory;
