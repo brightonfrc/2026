@@ -7,6 +7,7 @@ import frc.robot.Constants.AccelerationLimiterConstants;
 import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.Constants.TestingConstants;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -60,42 +61,42 @@ public class FieldOrientedDrive extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        if (xboxController.a().getAsBoolean()&&hasToggled==false){
-            slowModeActive=!slowModeActive;
-            hasToggled=true;
-        }
-        if(xboxController.a().getAsBoolean()==false){
-            //button no longer pressed, able to toggle slow mode now
-            hasToggled=false;
-        }
+        xboxController.a().onTrue(Commands.runOnce(() -> {slowModeActive =! slowModeActive;}));
         SmartDashboard.putBoolean("Slow Mode Active", slowModeActive);
-        maximumAcceleration=(slowModeActive ? AccelerationLimiterConstants.maximumAccelerationReduced : AccelerationLimiterConstants.maximumAcceleration);
+
+        maximumAcceleration= (slowModeActive ? AccelerationLimiterConstants.maximumAccelerationReduced 
+        : AccelerationLimiterConstants.maximumAcceleration);
+
         // SmartDashboard.putNumber("Goal bearing", goalBearing);
 
-        //Both joysticks assumes the right to be bearing 0 and then works clockwise from there. To have bearing 0 be in front, the bearing
-        //has to be moved back by 90 degrees/ 1/2 PI
-        //If right joystick is not being moved retain previous bearing
-        if (Math.hypot(xboxController.getRightY(), xboxController.getRightX())>  0.9) {
+        // Both joysticks assumes the right to be bearing 0 and then works clockwise from there. 
+        // To have bearing 0 be in front, the bearing has to be moved back by 90 degrees/ 1/2 PI
+        // If right joystick is not being moved retain previous bearing
+        if (Math.hypot(xboxController.getRightY(), xboxController.getRightX()) > 0.9) {
             joystickTurnBearing = Math.atan2(xboxController.getRightY(), xboxController.getRightX()) + Math.PI/2;
         }
         // SmartDashboard.putNumber("Turn: Right Joystick bearing", joystickTurnBearing);
-        //error tolerance of 2 degrees
-        if (Math.abs(joystickTurnBearing-goalBearing)>Math.PI/180*FieldOrientedDriveConstants.bearingTolerance){
+        
+        // error tolerance of 2 degrees
+        if (Math.abs(joystickTurnBearing-goalBearing) > Math.PI/180 * FieldOrientedDriveConstants.bearingTolerance){
             goalBearing = -joystickTurnBearing;
             bearingPIDController.reset();
             bearingPIDController.setSetpoint(goalBearing);
         }
+    
         robotBearing = driveSubsystem.getGyroAngle();
-        if (robotBearing<0){
+        if (robotBearing < 0){
             //converting to within range 0 to 360 degrees
             robotBearing+=360;
         }
         //converting to radians
         robotBearing = robotBearing / 180 * Math.PI;
         // SmartDashboard.putNumber("Robot bearing", robotBearing);
+
         //it looks cooked but that's because the controller is mapped kinda funny
         joystickMoveBearing = Math.atan2(xboxController.getLeftX(), -xboxController.getLeftY());
         // SmartDashboard.putNumber("Drive: Left joystick bearing", joystickMoveBearing);
+
         //gyro measures angles anticlockwise.
         joystickMoveBearing=joystickMoveBearing+robotBearing-2*Math.PI;
 
@@ -146,6 +147,7 @@ public class FieldOrientedDrive extends Command {
     public void end(boolean interrupted) {
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
+    
     // Returns true when the command should end.
     @Override
     public boolean isFinished() {
