@@ -21,10 +21,6 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.subsystems.AprilTagPoseEstimator;
 
 import java.util.Optional;
-<<<<<<< HEAD
-=======
-
->>>>>>> main
 import edu.wpi.first.math.geometry.Transform3d;
 import java.util.List;
 import org.photonvision.targeting.PhotonTrackedTarget;

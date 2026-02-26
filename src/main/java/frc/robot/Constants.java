@@ -11,10 +11,6 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-<<<<<<< HEAD
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-=======
->>>>>>> main
 import frc.robot.Constants.LiftConstants.Height;
 
 /**
@@ -307,4 +303,27 @@ public static final String kCameraName = "Arducam_OV9281_USB_Camera"; // Options
 public static final Transform3d kRobotToCamera = new Transform3d(new Translation3d(0.330, 0, 0.125), new Rotation3d(0,0,0)); // Remember y is sideways, x is forwards for our code
 
 }
+
+public static final class AprilTagAlignmentConstants {
+public static final double cameraDisplacement=0.100;
+//0.5 m from reef
+public static final double stopDisplacementX = 0.7;
+//0.165 m left for left stick displacement
+public static final double stopDisplacementY = 0.16;
+
+//1 cm of error
+public static final double errorIntervalPositions = 0.01;
+//0.5 degrees of error
+public static final double errorIntervalRotations = Math.PI/360;
+
+// PID (REPLACE WITH ACTUAL VALUES AT SOME POINT)
+public static final double kTurnP = 0.05;
+public static final double kTurnI = 0.0;
+public static final double kTurnD = 0;
+
+public static final double kMoveP = 0.2;
+public static final double kMoveI = 0;
+public static final double kMoveD = 0;
+}
+
 }
