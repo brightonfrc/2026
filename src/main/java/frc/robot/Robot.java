@@ -101,7 +101,7 @@ public class Robot extends TimedRobot {
     // m_robotContainer.getArmAngle();
     // m_robotContainer.getHeightSet();
 
-    // m_robotContainer.printPose();
+    m_robotContainer.printPose();
   }
 
   @Override
@@ -120,5 +120,6 @@ public class Robot extends TimedRobot {
 
   /** This function is called periodically whilst in simulation. */
   @Override
-  public void simulationPeriodic() {}
+  public void simulationPeriodic() {
+  }
 }
