@@ -11,7 +11,10 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+<<<<<<< HEAD
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+=======
+>>>>>>> main
 import frc.robot.Constants.LiftConstants.Height;
 
 /**
@@ -27,22 +30,6 @@ import frc.robot.Constants.LiftConstants.Height;
 * constants are needed, to reduce verbosity.
 */
 public final class Constants {
-public static class stupidConstants{
-//delete ASAP
-public static double armTolerance=Math.PI/180*4;
-public static double liftTolerance=Math.PI/180*5;
-public static double kPArm=0.3;
-public static double kIArm=0.01;
-}
-
-public static class ColourSensorConstants{
-public static String reefColorHex="0x800080";
-public static double minimumConfidenceThreshold=0.8;
-}
-public static class WinchConstants{
-public static double winchPower=0.5;
-public static int winchCANID=15;
-}
 public static class CoralStationAlignConstants{
 public static double xDisplacement=0.8;
 public static double xTolerance=0.05;
@@ -132,56 +119,6 @@ public static double rotationkD=0.0;
 // public static final int armCANID=13;
 // public static final int intakeCanID=14;
 
-public static class IntakeConstants{
-public static final int intakeCanID=14;
-public static final double intakePower=-0.6; //0.4
-public static final double outtakePower=0.3;//0.2;
-}
-public static class AngleLimitConstants{
-//all in degrees, remember to convert to radians
-
-//arm angle below horizontal
-//in actuality, it can reach -154, but I can't see a reason why you would need to go that far
-public static final double minArmAngle=-140;
-//arm angle above horizontal
-//in actuality, it starts at 124
-public static final double maxArmAngle=128;
-public static final double maxLiftAngle=100;
-public static final double minLiftAngle=10;
-}
-public static class ArmConstants{
-
-public static final double kWeightMomentOffsetFactor=0.033;
-
-//get a engineer's square the next time I do this
-public static final double angleAtZero=154.8;
-// public static final int decimalPlaces=2;
-public static final int armCANID=13;
-public static final int armEncoderPort=1;
-//its all in degrees, remember to convert
-public static final double[] desiredArmAngle= new double[]{
-//do note that ground height isn't actually at 0, because arm has minimum height
--40,//Ground intake (placeholder)
-90,//L1
-100,//L2
-100,//L3
-80, //L4
--60, //Algae2
--70, //Algae3 (placeholder)
-56.5, //CoralStation
--110, //StartingConfig
--45, //hangStart
-140 // Internal Stow
-};
-public static final double maxPower=0.4;
-public static final double kPArm=0.28;//0.27
-public static final double kIArm=0.0;
-public static final double kDArm=0.07;
-//1 degree tolerance
-public static final double angleTolerance=Math.PI/180;
-
-public static final double armFallingPower=-0.01;
-}
 public static class LiftConstants{
 //for some reason at 0.04 the robot goes insane
 public static final double maximumPowerChange=0.05;
@@ -303,28 +240,6 @@ public static final int kRearRightTurningCanId = 6;
 public static final boolean kGyroReversed = false;
 }
 
-public static final class AprilTagAlignmentConstants{
-public static final double cameraDisplacement=0.100;
-//0.5 m from reef
-public static final double stopDisplacementX = 0.7;
-//0.165 m left for left stick displacement
-public static final double stopDisplacementY = 0.16;
-
-//1 cm of error
-public static final double errorIntervalPositions = 0.01;
-//0.5 degrees of error
-public static final double errorIntervalRotations = Math.PI/360;
-
-// PID (REPLACE WITH ACTUAL VALUES AT SOME POINT)
-public static final double kTurnP = 0.05;
-public static final double kTurnI = 0.0;
-public static final double kTurnD = 0;
-
-public static final double kMoveP = 0.2;
-public static final double kMoveI = 0;
-public static final double kMoveD = 0;
-}
-
 public static final class ModuleConstants {
 // The MAXSwerve module can be configured with one of three pinion gears: 12T, 13T, or 14T.
 // This changes the drive speed of the module (a pinion gear with more teeth will result in a
@@ -382,24 +297,6 @@ public static final int kManualLiftControllerPort=1;
 public static final double kDriveDeadband = 0.1;
 }
 
-public static final class AutoConstants {
-public static final double kMaxSpeedMetersPerSecond = 3;
-public static final double kMaxAccelerationMetersPerSecondSquared = 3;
-public static final double kMaxAngularSpeedRadiansPerSecond = Math.PI;
-public static final double kMaxAngularSpeedRadiansPerSecondSquared = Math.PI;
-
-public static final double kPXController = 1;
-public static final double kPYController = 1;
-public static final double kPThetaController = 1;
-
-// Constraint for the motion profiled robot angle controller
-public static final TrapezoidProfile.Constraints kThetaControllerConstraints = new TrapezoidProfile.Constraints(
-kMaxAngularSpeedRadiansPerSecond, kMaxAngularSpeedRadiansPerSecondSquared);
-
-public static final long kShooterDurationMillis = 5000; // 3s without intake then 2 seconds with it
-public static long kIntakeDurationMillis = 2000; // 2 seconds
-}
-
 public static final class NeoMotorConstants {
 public static final double kFreeSpeedRpm = 5676;
 }
@@ -410,16 +307,4 @@ public static final String kCameraName = "Arducam_OV9281_USB_Camera"; // Options
 public static final Transform3d kRobotToCamera = new Transform3d(new Translation3d(0.330, 0, 0.125), new Rotation3d(0,0,0)); // Remember y is sideways, x is forwards for our code
 
 }
-
-// Don't think we need this, but just in case
-// public static final class LiftConstants{
-// public static final double kP = 0.1;
-// public static final double kI = 0;
-// public static final double kD = 0;
-// public static final double kTolerance = 0.1;
-
-// public static final double kSetpointClimb = 1;
-// public static final double kSetpointDeclimb = 0;
-
-// }
 }

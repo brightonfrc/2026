@@ -22,8 +22,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import com.studica.frc.AHRS;
 import edu.wpi.first.wpilibj.DriverStation;
+<<<<<<< HEAD
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.RobotBase;
+=======
+>>>>>>> main
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;

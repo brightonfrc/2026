@@ -13,6 +13,11 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkBase.ControlType;
+<<<<<<< HEAD
+=======
+import com.revrobotics.PersistMode;
+import com.revrobotics.ResetMode;
+>>>>>>> main
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.AbsoluteEncoder;
 import com.revrobotics.RelativeEncoder;
@@ -101,10 +106,15 @@ public class MAXSwerveModule {
     correctedDesiredState.optimize(new Rotation2d(m_turningEncoder.getPosition()));
 
     // Command driving and turning SPARKS towards their respective setpoints.
+<<<<<<< HEAD
     m_drivingClosedLoopController.setSetpoint(
         correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
     m_turningClosedLoopController.setSetpoint(
         correctedDesiredState.angle.getRadians(), ControlType.kPosition);
+=======
+    m_drivingClosedLoopController.setSetpoint(correctedDesiredState.speedMetersPerSecond, ControlType.kVelocity);
+    m_turningClosedLoopController.setSetpoint(correctedDesiredState.angle.getRadians(), ControlType.kPosition);
+>>>>>>> main
 
     m_desiredState = desiredState;
   }
