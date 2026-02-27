@@ -126,7 +126,7 @@ public class RobotContainer {
     // StopRobot stop4 = new StopRobot(m_driveSubsystem);
 
     return Commands.sequence(
-      new PathPlannerAuto("Auto"),
+      new PathPlannerAuto("Test Auto"),
       stop
     );
     }
