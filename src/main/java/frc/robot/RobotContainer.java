@@ -100,8 +100,8 @@ public class RobotContainer {
     StopRobot stopRobot = new StopRobot(m_driveSubsystem);
 
     return Commands.sequence(
-      autoFactory.resetOdometry("SplineTest"),
-      autoFactory.trajectoryCmd("SplineTest"),
+      autoFactory.resetOdometry("Madness"),
+      autoFactory.trajectoryCmd("Madness"),
       stopRobot
     );
   }

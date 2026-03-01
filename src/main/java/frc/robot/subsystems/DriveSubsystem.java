@@ -157,10 +157,10 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    Pose2d pose= m_odometry.getPoseMeters();
+    Pose2d pose = m_odometry.getPoseMeters();
     double angle = m_gyro.getAngle() % 360;
     if (angle<0){
-      angle+=360;
+      angle += 360;
     }
 
     pose = new Pose2d(pose.getX(), pose.getY(), Rotation2d.fromDegrees(angle));
@@ -172,9 +172,9 @@ public class DriveSubsystem extends SubsystemBase {
   }
   /**Returns currently-estimated pose without current bearing */
   public Pose2d getPoseChoreo(){
-    Pose2d pose=getPose();    
+    Pose2d pose = getPose();    
     //for some reason pose is reversed
-    return new Pose2d(-pose.getX(), -pose.getY(), Rotation2d.fromDegrees(0));
+    return new Pose2d(-pose.getX(), -pose.getY(), pose.getRotation());
   }
 
   /**
