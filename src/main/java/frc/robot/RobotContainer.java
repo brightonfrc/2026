@@ -13,6 +13,7 @@ import frc.robot.subsystems.DriveSubsystem;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
+import choreo.auto.AutoFactory;
 import frc.robot.commands.StopRobot;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -46,10 +47,23 @@ public class RobotContainer {
   new CommandXboxController(OIConstants.kDriverControllerPort);
   private final CommandPS4Controller m_manualLiftController= new CommandPS4Controller(OIConstants.kManualLiftControllerPort);
   private final FieldOrientedDrive fieldOrientedDrive= new FieldOrientedDrive(m_driveSubsystem, m_driverController);
+
+  private final AutoFactory autoFactory;
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
     m_driveSubsystem.setDefaultCommand(fieldOrientedDrive);
+    // m_driveSubsystem.drive(m_driverController.getLeftX(), m_driverController.getLeftY(), 0, false);
+    //for Choreo
+    autoFactory = new AutoFactory(
+            m_driveSubsystem::getPoseChoreo, // A function that returns the current robot pose
+            m_driveSubsystem::resetOdometry, // A function that resets the current robot pose to the provided Pose2d
+            m_driveSubsystem::followTrajectory, // The drive subsystem trajectory follower 
+            false, // If alliance flipping should be enabled 
+            m_driveSubsystem // The drive subsystem
+        );
+    configureBindings();
   }
 
   /**
@@ -83,17 +97,15 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    StopRobot stop = new StopRobot(m_driveSubsystem);
-    //annoyingly, you can't reuse the same command in a Commands.sequence
-    // StopRobot stop2 = new StopRobot(m_driveSubsystem);
-    // StopRobot stop3 = new StopRobot(m_driveSubsystem);
-    // StopRobot stop4 = new StopRobot(m_driveSubsystem);
+    StopRobot stopRobot = new StopRobot(m_driveSubsystem);
 
     return Commands.sequence(
-      new PathPlannerAuto("Auto"),
-      stop
+      autoFactory.resetOdometry("RotationalTest"),
+      autoFactory.trajectoryCmd("RotationalTest"),
+      stopRobot
     );
-    }
+  }
+
   public void SetUpDefaultCommand(){
     m_driveSubsystem.setDefaultCommand(fieldOrientedDrive);
   }
