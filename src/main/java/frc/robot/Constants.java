@@ -96,7 +96,7 @@ public static class ChoreoConstants{
 public static double translationkP=0.70;
 public static double translationkI=0.0;
 public static double translationkD=0.0;
-public static double rotationkP=0.1;
+public static double rotationkP=1.5;
 public static double rotationkI=0.0;
 public static double rotationkD=0.0;
 }

@@ -131,8 +131,11 @@ public class DriveSubsystem extends SubsystemBase {
         );
 
         // Apply the generated speeds
-        drive(speeds.vxMetersPerSecond/DriveConstants.kMaxSpeedMetersPerSecond,speeds.vyMetersPerSecond/DriveConstants.kMaxSpeedMetersPerSecond,0,false);
-        // drive(speeds.vxMetersPerSecond/DriveConstants.kMaxSpeedMetersPerSecond,speeds.vyMetersPerSecond/DriveConstants.kMaxSpeedMetersPerSecond,speeds.omegaRadiansPerSecond/DriveConstants.kMaxAngularSpeed,false);
+        drive(
+          speeds.vxMetersPerSecond / DriveConstants.kMaxSpeedMetersPerSecond,
+          speeds.vyMetersPerSecond / DriveConstants.kMaxSpeedMetersPerSecond,
+          speeds.omegaRadiansPerSecond / DriveConstants.kMaxAngularSpeed,
+          true);
     }
 
   @Override
@@ -155,11 +158,13 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public Pose2d getPose() {
     Pose2d pose= m_odometry.getPoseMeters();
-    // double angle =m_gyro.getAngle()%360;
-    // if (angle<0){
-    //   angle+=360;
-    // }
-    // pose= new Pose2d(pose.getX(), pose.getY(), Rotation2d.fromDegrees(angle));
+    double angle = m_gyro.getAngle() % 360;
+    if (angle<0){
+      angle+=360;
+    }
+
+    pose = new Pose2d(pose.getX(), pose.getY(), Rotation2d.fromDegrees(angle));
+
     SmartDashboard.putNumber("Pose/x", pose.getX());
     SmartDashboard.putNumber("Pose/y", pose.getY());
     SmartDashboard.putNumber("Pose/rot", pose.getRotation().getDegrees());
