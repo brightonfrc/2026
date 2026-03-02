@@ -15,13 +15,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.util.Units;
 import org.photonvision.PhotonUtils;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-<<<<<<< HEAD
-
-=======
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-/** An example command that uses an example subsystem. */
->>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
 public class FieldOrientedDrive extends Command {
     private DriveSubsystem driveSubsystem;
     private CommandXboxController xboxController;
@@ -72,18 +65,11 @@ public class FieldOrientedDrive extends Command {
         previousYSpeed=0;
         goalBearing=0;
         slowModeActive=false;
-<<<<<<< HEAD
 
         isAPressed = false;
         isBPressed = false;
-=======
-        hasToggled=false;
         // Dashboard toggle for sim/no-controller use.
         SmartDashboard.setDefaultBoolean("Vision/AutoAlign", false);
-        Shuffleboard.getTab("Vision")
-            .add("AutoAlign", false)
-            .withWidget(BuiltInWidgets.kToggleButton);
->>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
     }
     // Called every time the scheduler runs while the command is scheduled.
     @Override
@@ -160,7 +146,6 @@ public class FieldOrientedDrive extends Command {
         }
         previousYSpeed = ySpeed;
 
-<<<<<<< HEAD
         // depending on how you want to control the robot, toggled by button B
         if (fieldCentricTurning) {
             // Datis and Ella prefers this
@@ -176,10 +161,7 @@ public class FieldOrientedDrive extends Command {
             TestingConstants.reducedRotationSpeedRobotOriented :
             TestingConstants.maximumRotationSpeedRobotOriented
         );
-=======
-        // rotSpeed = 0;
-        rotSpeed = bearingPIDController.calculate(robotBearing) * TestingConstants.maximumRotationSpeed;
-        // SmartDashboard.putNumber("rotSpeed", rotSpeed);
+
         // Vision-assisted yaw alignment while holding right bumper.
         var closestTarget = poseEstimator.getClosestTarget();
         boolean targetVisible = closestTarget.isPresent();
@@ -190,7 +172,10 @@ public class FieldOrientedDrive extends Command {
         if (autoAlignRequested && targetVisible) {
             var target = closestTarget.get();
             double visionTurn = -target.getYaw() * VisionAlignConstants.kTurnP;
-            rotSpeed = MathUtil.clamp(visionTurn, -TestingConstants.maximumRotationSpeed, TestingConstants.maximumRotationSpeed);
+            rotSpeed = MathUtil.clamp(
+                visionTurn,
+                -TestingConstants.maximumRotationSpeedRobotOriented,
+                TestingConstants.maximumRotationSpeedRobotOriented);
             double targetRange =
                 PhotonUtils.calculateDistanceToTargetMeters(
                     VisionAlignConstants.kCameraHeightMeters,
@@ -201,7 +186,6 @@ public class FieldOrientedDrive extends Command {
             double visionForward = (VisionAlignConstants.kDesiredRangeMeters - targetRange) * VisionAlignConstants.kRangeP;
             xSpeed = MathUtil.clamp(visionForward, -TestingConstants.maximumSpeed, TestingConstants.maximumSpeed);
         }
->>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
 
         driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
         

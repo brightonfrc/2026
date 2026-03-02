@@ -79,12 +79,20 @@ Testing
 
 //remember that the gyro is inverted, so 90 degrees is to the left
 //bearing of robot when first Choreo Path Ends.
-public static double endRotOne = switch (startPos) {
-case Left -> 300; // Should be 60 to the right, but just don't want it to go out of bounds...
-case Right -> 60;
-case Middle -> 0;
-default -> 0;
-};
+public static double endRotOne = getEndRotOne(startPos);
+
+private static double getEndRotOne(StartingPosition startPos) {
+switch (startPos) {
+case Left:
+    return 300; // Should be 60 to the right, but just don't want it to go out of bounds...
+case Right:
+    return 60;
+case Middle:
+    return 0;
+default:
+    return 0;
+}
+}
 }
 
 public static class ChoreoConstants{
@@ -304,14 +312,35 @@ public static final Transform3d kRobotToCamera = new Transform3d(new Translation
 
 }
 
-<<<<<<< HEAD
 public static final class AprilTagAlignmentConstants {
 public static final double cameraDisplacement=0.100;
 //0.5 m from reef
 public static final double stopDisplacementX = 0.7;
 //0.165 m left for left stick displacement
 public static final double stopDisplacementY = 0.16;
-=======
+
+// Don't think we need this, but just in case
+// public static final class LiftConstants{
+// public static final double kP = 0.1;
+// public static final double kI = 0;
+// public static final double kD = 0;
+// public static final double kTolerance = 0.1;
+
+//1 cm of error
+public static final double errorIntervalPositions = 0.01;
+//0.5 degrees of error
+public static final double errorIntervalRotations = Math.PI/360;
+
+// PID (REPLACE WITH ACTUAL VALUES AT SOME POINT)
+public static final double kTurnP = 0.05;
+public static final double kTurnI = 0.0;
+public static final double kTurnD = 0;
+
+public static final double kMoveP = 0.2;
+public static final double kMoveI = 0;
+public static final double kMoveD = 0;
+}
+
 public static final class VisionAlignConstants {
 public static final int kTargetTagId = 7;
 // Proportional gain for yaw correction (degrees -> normalized rotation command).
@@ -338,29 +367,6 @@ public static final double kSingleTagThetaStdDev = 1.0;
 public static final double kMultiTagXYStdDev = 0.5;
 public static final double kMultiTagThetaStdDev = 0.8;
 public static final double kMaxSingleTagDistanceMeters = 4.0;
-}
-
-// Don't think we need this, but just in case
-// public static final class LiftConstants{
-// public static final double kP = 0.1;
-// public static final double kI = 0;
-// public static final double kD = 0;
-// public static final double kTolerance = 0.1;
->>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
-
-//1 cm of error
-public static final double errorIntervalPositions = 0.01;
-//0.5 degrees of error
-public static final double errorIntervalRotations = Math.PI/360;
-
-// PID (REPLACE WITH ACTUAL VALUES AT SOME POINT)
-public static final double kTurnP = 0.05;
-public static final double kTurnI = 0.0;
-public static final double kTurnD = 0;
-
-public static final double kMoveP = 0.2;
-public static final double kMoveI = 0;
-public static final double kMoveD = 0;
 }
 
 }
