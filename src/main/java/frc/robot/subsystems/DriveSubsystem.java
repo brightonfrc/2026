@@ -12,9 +12,12 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import frc.robot.Constants.AutonPathPlannerConstants;
 import frc.robot.Constants.DriveConstants;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -63,16 +66,8 @@ public class DriveSubsystem extends SubsystemBase {
     }
   }
 
-  // Odometry class for tracking robot pose
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
-      DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(m_gyro.getAngle()%360),
-      new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-      });
+  // Pose estimator for tracking robot pose with vision fusion
+  private SwerveDrivePoseEstimator m_poseEstimator;
 
   // Simple pose integration for simulation (no drivetrain physics)
   private Pose2d m_simPose = new Pose2d();
@@ -86,6 +81,11 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
+    m_poseEstimator = new SwerveDrivePoseEstimator(
+        DriveConstants.kDriveKinematics,
+        Rotation2d.fromDegrees(m_gyro.getAngle() % 360),
+        getModulePositions(),
+        new Pose2d());
     if (RobotBase.isSimulation()) {
       // Skip PathPlanner GUI config loading in sim; it requires deploy files.
       HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
@@ -140,15 +140,10 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // Update the odometry in the periodic block
-    m_odometry.update(
-        Rotation2d.fromDegrees(m_gyro.getAngle()%360),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        });
+    // Update the pose estimator in the periodic block
+    m_poseEstimator.update(
+        Rotation2d.fromDegrees(m_gyro.getAngle() % 360),
+        getModulePositions());
   }
 
   /**
@@ -157,7 +152,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    Pose2d pose = RobotBase.isSimulation() ? m_simPose : m_odometry.getPoseMeters();
+    Pose2d pose = RobotBase.isSimulation() ? m_simPose : m_poseEstimator.getEstimatedPosition();
     // double angle =m_gyro.getAngle()%360;
     // if (angle<0){
     //   angle+=360;
@@ -186,14 +181,9 @@ public class DriveSubsystem extends SubsystemBase {
       m_lastSimTimeSec = Timer.getFPGATimestamp();
       return;
     }
-    m_odometry.resetPosition(
-        Rotation2d.fromDegrees(m_gyro.getAngle()%360),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        },
+    m_poseEstimator.resetPosition(
+        Rotation2d.fromDegrees(m_gyro.getAngle() % 360),
+        getModulePositions(),
         pose);
   }
 
@@ -333,6 +323,25 @@ public class DriveSubsystem extends SubsystemBase {
    */
   public void resetGyro(){
     m_gyro.reset();
+  }
+
+  /**
+   * Adds a vision measurement to the pose estimator.
+   */
+  public void addVisionMeasurement(Pose2d pose, double timestampSeconds, Matrix<N3, N1> stdDevs) {
+    if (RobotBase.isSimulation()) {
+      return;
+    }
+    m_poseEstimator.addVisionMeasurement(pose, timestampSeconds, stdDevs);
+  }
+
+  private SwerveModulePosition[] getModulePositions() {
+    return new SwerveModulePosition[] {
+        m_frontLeft.getPosition(),
+        m_frontRight.getPosition(),
+        m_rearLeft.getPosition(),
+        m_rearRight.getPosition()
+    };
   }
 
   /**

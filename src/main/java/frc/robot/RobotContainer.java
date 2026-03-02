@@ -27,6 +27,8 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.math.util.Units;
+import frc.robot.Constants.VisionAlignConstants;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -41,7 +43,7 @@ public class RobotContainer {
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
   new CommandXboxController(OIConstants.kDriverControllerPort);
-  private final FieldOrientedDrive fieldOrientedDrive= new FieldOrientedDrive(m_driveSubsystem, m_driverController);
+  private final FieldOrientedDrive fieldOrientedDrive= new FieldOrientedDrive(m_driveSubsystem, m_driverController, m_poseEstimator);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
@@ -124,6 +126,40 @@ public class RobotContainer {
       SmartDashboard.putNumber("robot2tag/t/y", r2t.getTranslation().getY());
       SmartDashboard.putNumber("robot2tag/r/yaw", r2t.getRotation().getZ());
     }
+
+    var bestTarget = m_poseEstimator.getBestTarget();
+    SmartDashboard.putBoolean("vision/hasTargets", bestTarget.isPresent());
+    if (bestTarget.isPresent()) {
+      var target = bestTarget.get();
+      SmartDashboard.putNumber("vision/yaw", target.getYaw());
+      SmartDashboard.putNumber("vision/pitch", target.getPitch());
+      SmartDashboard.putNumber("vision/area", target.getArea());
+      SmartDashboard.putNumber("vision/skew", target.getSkew());
+      SmartDashboard.putNumber("vision/id", target.getFiducialId());
+      SmartDashboard.putNumber("vision/ambiguity", target.getPoseAmbiguity());
+      Transform3d camToTarget = target.getBestCameraToTarget();
+      SmartDashboard.putNumber("vision/camToTarget/x", camToTarget.getTranslation().getX());
+      SmartDashboard.putNumber("vision/camToTarget/y", camToTarget.getTranslation().getY());
+      SmartDashboard.putNumber("vision/camToTarget/z", camToTarget.getTranslation().getZ());
+
+      double distanceMeters = m_poseEstimator.calculateDistanceToTargetMeters(
+          VisionAlignConstants.kCameraHeightMeters,
+          VisionAlignConstants.kTargetHeightMeters,
+          Units.degreesToRadians(VisionAlignConstants.kCameraPitchDegrees),
+          Units.degreesToRadians(target.getPitch()));
+      SmartDashboard.putNumber("vision/distanceMeters", distanceMeters);
+    }
+  }
+
+  public void updateVisionPose() {
+    var visionEst = m_poseEstimator.getEstimatedGlobalPose();
+    visionEst.ifPresent(est -> {
+      var estStdDevs = m_poseEstimator.getEstimationStdDevs(est);
+      m_driveSubsystem.addVisionMeasurement(
+          est.estimatedPose.toPose2d(),
+          est.timestampSeconds,
+          estStdDevs);
+    });
   }
 
   public void simulationPeriodic() {

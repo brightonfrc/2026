@@ -6,14 +6,26 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.Constants.AccelerationLimiterConstants;
 import frc.robot.Constants.FieldOrientedDriveConstants;
 import frc.robot.Constants.TestingConstants;
+import frc.robot.Constants.VisionAlignConstants;
+import frc.robot.subsystems.AprilTagPoseEstimator;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.util.Units;
+import org.photonvision.PhotonUtils;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+<<<<<<< HEAD
 
+=======
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
+import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
+/** An example command that uses an example subsystem. */
+>>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
 public class FieldOrientedDrive extends Command {
     private DriveSubsystem driveSubsystem;
     private CommandXboxController xboxController;
+    private AprilTagPoseEstimator poseEstimator;
     private PIDController bearingPIDController;
     private double goalBearing;
     private double joystickTurnBearing;
@@ -40,11 +52,12 @@ public class FieldOrientedDrive extends Command {
      *
      * @param subsystem The subsystem used by this command.
      */
-    public FieldOrientedDrive(DriveSubsystem driveSubsystem, CommandXboxController xboxController) {
+    public FieldOrientedDrive(DriveSubsystem driveSubsystem, CommandXboxController xboxController, AprilTagPoseEstimator poseEstimator) {
         this.driveSubsystem = driveSubsystem;
         this.xboxController = xboxController;
+        this.poseEstimator = poseEstimator;
         // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(driveSubsystem);
+        addRequirements(driveSubsystem, poseEstimator);
     }
 
     // Called when the command is initially scheduled.
@@ -59,9 +72,18 @@ public class FieldOrientedDrive extends Command {
         previousYSpeed=0;
         goalBearing=0;
         slowModeActive=false;
+<<<<<<< HEAD
 
         isAPressed = false;
         isBPressed = false;
+=======
+        hasToggled=false;
+        // Dashboard toggle for sim/no-controller use.
+        SmartDashboard.setDefaultBoolean("Vision/AutoAlign", false);
+        Shuffleboard.getTab("Vision")
+            .add("AutoAlign", false)
+            .withWidget(BuiltInWidgets.kToggleButton);
+>>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
     }
     // Called every time the scheduler runs while the command is scheduled.
     @Override
@@ -138,6 +160,7 @@ public class FieldOrientedDrive extends Command {
         }
         previousYSpeed = ySpeed;
 
+<<<<<<< HEAD
         // depending on how you want to control the robot, toggled by button B
         if (fieldCentricTurning) {
             // Datis and Ella prefers this
@@ -153,6 +176,32 @@ public class FieldOrientedDrive extends Command {
             TestingConstants.reducedRotationSpeedRobotOriented :
             TestingConstants.maximumRotationSpeedRobotOriented
         );
+=======
+        // rotSpeed = 0;
+        rotSpeed = bearingPIDController.calculate(robotBearing) * TestingConstants.maximumRotationSpeed;
+        // SmartDashboard.putNumber("rotSpeed", rotSpeed);
+        // Vision-assisted yaw alignment while holding right bumper.
+        var closestTarget = poseEstimator.getClosestTarget();
+        boolean targetVisible = closestTarget.isPresent();
+        SmartDashboard.putBoolean("Vision Target Visible", targetVisible);
+        boolean autoAlignRequested =
+            xboxController.rightBumper().getAsBoolean()
+                || SmartDashboard.getBoolean("Vision/AutoAlign", false);
+        if (autoAlignRequested && targetVisible) {
+            var target = closestTarget.get();
+            double visionTurn = -target.getYaw() * VisionAlignConstants.kTurnP;
+            rotSpeed = MathUtil.clamp(visionTurn, -TestingConstants.maximumRotationSpeed, TestingConstants.maximumRotationSpeed);
+            double targetRange =
+                PhotonUtils.calculateDistanceToTargetMeters(
+                    VisionAlignConstants.kCameraHeightMeters,
+                    VisionAlignConstants.kTargetHeightMeters,
+                    Units.degreesToRadians(VisionAlignConstants.kCameraPitchDegrees),
+                    Units.degreesToRadians(target.getPitch()));
+            SmartDashboard.putNumber("Vision Target Range M", targetRange);
+            double visionForward = (VisionAlignConstants.kDesiredRangeMeters - targetRange) * VisionAlignConstants.kRangeP;
+            xSpeed = MathUtil.clamp(visionForward, -TestingConstants.maximumSpeed, TestingConstants.maximumSpeed);
+        }
+>>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
 
         driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
         

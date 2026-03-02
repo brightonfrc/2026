@@ -304,12 +304,49 @@ public static final Transform3d kRobotToCamera = new Transform3d(new Translation
 
 }
 
+<<<<<<< HEAD
 public static final class AprilTagAlignmentConstants {
 public static final double cameraDisplacement=0.100;
 //0.5 m from reef
 public static final double stopDisplacementX = 0.7;
 //0.165 m left for left stick displacement
 public static final double stopDisplacementY = 0.16;
+=======
+public static final class VisionAlignConstants {
+public static final int kTargetTagId = 7;
+// Proportional gain for yaw correction (degrees -> normalized rotation command).
+public static final double kTurnP = 0.015;
+public static final double kSkewP = 0.006;
+// Distance control (pitch -> range -> forward command).
+public static final double kRangeP = 0.8;
+public static final double kDesiredRangeMeters = 1.0;
+public static final double kRangeDeadbandMeters = 0.08;
+// Strafe to center on tag (meters -> normalized strafe command).
+public static final double kStrafeP = 0.8;
+public static final double kStrafeDeadbandMeters = 0.05;
+// Slew rate limiting for vision auto-align outputs (normalized units per second).
+public static final double kVisionSlewRateLinear = 4.0;
+public static final double kVisionSlewRateRot = 6.0;
+public static final double kCameraHeightMeters = 0.50;
+public static final double kTargetHeightMeters = 1.435;
+public static final double kCameraPitchDegrees = -30.0;
+}
+
+public static final class VisionPoseStdDevConstants {
+public static final double kSingleTagXYStdDev = 0.7;
+public static final double kSingleTagThetaStdDev = 1.0;
+public static final double kMultiTagXYStdDev = 0.5;
+public static final double kMultiTagThetaStdDev = 0.8;
+public static final double kMaxSingleTagDistanceMeters = 4.0;
+}
+
+// Don't think we need this, but just in case
+// public static final class LiftConstants{
+// public static final double kP = 0.1;
+// public static final double kI = 0;
+// public static final double kD = 0;
+// public static final double kTolerance = 0.1;
+>>>>>>> 994c1ee (Updated AprilTagPoseEstimator and drive integration)
 
 //1 cm of error
 public static final double errorIntervalPositions = 0.01;
