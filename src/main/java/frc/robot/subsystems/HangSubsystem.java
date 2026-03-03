@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.PersistMode;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -18,7 +19,7 @@ public class HangSubsystem extends SubsystemBase {
     public static final int UNHANG_DISTANCE = 10;
 
     private final SparkMax hangMotor;
-    private final Encoder hangEncoder;
+    private final RelativeEncoder hangEncoder;
 
     private boolean isHanging = false; // true = hang, false = unhang
 
@@ -31,15 +32,14 @@ public class HangSubsystem extends SubsystemBase {
         config.idleMode(IdleMode.kBrake);
         hangMotor.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        hangEncoder = new Encoder(0, 1);
-        hangEncoder.reset();
+        hangEncoder = hangMotor.getEncoder();
     }
 
     @Override
     public void periodic() {
-        if (isHanging && hangEncoder.getDistance() < HANG_DISTANCE) {
+        if (isHanging && hangEncoder.getPosition() < HANG_DISTANCE) {
             hangMotor.set(HANG_MOTOR_SPEED);
-        } else if (!isHanging && hangEncoder.getDistance() > UNHANG_DISTANCE) {
+        } else if (!isHanging && hangEncoder.getPosition() > UNHANG_DISTANCE) {
             hangMotor.set(-HANG_MOTOR_SPEED);
         } else {
             hangMotor.set(0);
