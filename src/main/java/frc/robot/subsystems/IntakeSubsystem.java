@@ -4,98 +4,129 @@
 
 package frc.robot.subsystems;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.IntakeConstants;
 
-
-// two sparkmax motor controlers, one for intake and one for accelerator
 public class IntakeSubsystem extends SubsystemBase {
+  // Deploy motor – extends and retracts the intake mechanism
+  private final SparkMax m_deployMotor =
+      new SparkMax(IntakeConstants.kDeployMotorCanId, MotorType.kBrushless);
+  private final RelativeEncoder m_deployEncoder = m_deployMotor.getEncoder();
+
+  // Intake spinner motor – spins the rollers to collect/eject game pieces
   private final SparkMax m_intakeMotor =
-      new SparkMax(IntakeConstants.intakeCanID, MotorType.kBrushless);
-  private final SparkMax m_acceleratorMotor =
-      new SparkMax(IntakeConstants.acceleratorCanID, MotorType.kBrushless);
+      new SparkMax(IntakeConstants.kIntakeMotorCanId, MotorType.kBrushless);
+
+  // Limit switches
+  // (DigitalInput reads false when pressed on most switches)
+  private final DigitalInput m_extendLimitSwitch =
+      new DigitalInput(IntakeConstants.kExtendLimitSwitchPort);
+  private final DigitalInput m_retractLimitSwitch =
+      new DigitalInput(IntakeConstants.kRetractLimitSwitchPort);
 
   /** Creates a new IntakeSubsystem. */
-  public IntakeSubsystem() {}
-
-  public void setIntake(double power) {
-    m_intakeMotor.set(power);
+  public IntakeSubsystem() {
+    m_deployEncoder.setPosition(0.0);
   }
 
-  public void setAccelerator(double power) {
-    m_acceleratorMotor.set(power);
+  // --- Sensor helpers ---
+
+  /** @return true when the extension limit switch is activated */
+  public boolean isFullyExtended() {
+    return !m_extendLimitSwitch.get();
   }
 
-  public void stop() {
-    m_intakeMotor.set(0.0);
-    m_acceleratorMotor.set(0.0);
+  /** @return true when the retraction limit switch is activated */
+  public boolean isFullyRetracted() {
+    return !m_retractLimitSwitch.get();
   }
+
+  /** @return current deploy encoder position (motor rotations) */
+  public double getDeployPosition() {
+    return m_deployEncoder.getPosition();
+  }
+
+  // --- Command factories ---
 
   /**
-   * Command factory: runs both intake and accelerator to pull balls
+   * Extends the intake at low power until the extension
+   * limit switch is pressed OR the encoder exceeds the
+   * soft limit.
    *
-   * @return a command that runs the intake
+   * @return a command that extends the intake
    */
-  public Command intakeCommand() {
+  public Command extendIntakeCommand() {
     return run(() -> {
-      setIntake(IntakeConstants.intakePower);
-      setAccelerator(IntakeConstants.acceleratorPower);
-      //finally do stops the motor when commands end
-    }).finallyDo(interrupted -> stop());
+      m_deployMotor.set(IntakeConstants.kDeployPower);
+    }).until(() ->
+        isFullyExtended()
+            || getDeployPosition()
+                >= IntakeConstants.kExtendEncoderLimit
+    ).finallyDo(interrupted -> m_deployMotor.set(0.0));
   }
 
   /**
-   * Command factory: reverses both motors to eject game pieces.
+   * Retracts the intake at low power (reversed) until
+   * the retraction limit switch is pressed OR the encoder
+   * drops below the soft limit.
    *
-   * @return a command that runs the outtake
+   * @return a command that retracts the intake
    */
-  public Command outtakeCommand() {
+  public Command retractIntakeCommand() {
     return run(() -> {
-      setIntake(IntakeConstants.outtakePower);
-      setAccelerator(-IntakeConstants.acceleratorPower); 
-    }).finallyDo(interrupted -> stop());
+      m_deployMotor.set(-IntakeConstants.kDeployPower);
+    }).until(() ->
+        isFullyRetracted()
+            || getDeployPosition()
+                <= IntakeConstants.kRetractEncoderLimit
+    ).finallyDo(interrupted -> m_deployMotor.set(0.0));
   }
 
   /**
-   * Command factory: runs only the accelerator at full power to shoot.
+   * Spins the intake rollers forwards at max power.
    *
-   * @return a command that shoots
+   * @return a command that runs intake forwards
    */
-  public Command shootCommand() {
+  public Command intakeForwardsCommand() {
     return run(() -> {
-      setAccelerator(IntakeConstants.acceleratorPower);
-    }).finallyDo(interrupted -> stop());
+      m_intakeMotor.set(IntakeConstants.kIntakeSpinPower);
+    }).finallyDo(interrupted -> m_intakeMotor.set(0.0));
   }
 
   /**
-   * Command factory: reverses both motors at low power to unjam a stuck ball.
-   * For testing/debugging only - not bound to any button by default.
+   * Spins the intake rollers backwards at max power.
    *
-   * @return a command that reverses both motors
+   * @return a command that runs intake backwards
    */
-  public Command reverseCommand() {
-    // runs both motors in reverse to push a stuck ball back out
+  public Command intakeBackwardsCommand() {
     return run(() -> {
-      setIntake(-IntakeConstants.intakePower);
-      setAccelerator(-IntakeConstants.acceleratorPower);
-    }).finallyDo(interrupted -> stop());
+      m_intakeMotor.set(-IntakeConstants.kIntakeSpinPower);
+    }).finallyDo(interrupted -> m_intakeMotor.set(0.0));
   }
 
   /**
-   * Command factory: stops all motors.
+   * Stops all intake motors immediately.
    *
    * @return a command that stops the intake
    */
-  public Command stopCommand() {
-    return runOnce(() -> stop());
+  public Command stopIntakeCommand() {
+    return runOnce(() -> {
+      m_deployMotor.set(0.0);
+      m_intakeMotor.set(0.0);
+    });
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    SmartDashboard.putBoolean("Intake/ExtendSwitch", isFullyExtended());
+    SmartDashboard.putBoolean("Intake/RetractSwitch", isFullyRetracted());
+    SmartDashboard.putNumber("Intake/DeployPosition", getDeployPosition());
   }
 }

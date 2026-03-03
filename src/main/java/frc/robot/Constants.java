@@ -137,15 +137,23 @@ public static double rotationkD=0.0;
 // public static final int intakeCanID=14;
 
 
-//added  intake constants
-public static class IntakeConstants{
-public static final int intakeCanID=14;
-public static final double intakePower=-0.6; //0.4
-public static final double outtakePower=0.3;//0.2;
+public static class IntakeConstants {
+  // Deploy motor (extend/retract the intake)
+  public static final int kDeployMotorCanId = 14; // TODO: set
+  public static final double kDeployPower = 0.3; // TODO: tune
 
-// Accelerator/shooter motor
-public static final int acceleratorCanID=16;
-public static final double acceleratorPower=0.8;
+  // Soft encoder limits (motor rotations)
+  // Safety backup to limit switches
+  public static final double kExtendEncoderLimit = 50.0; // TODO
+  public static final double kRetractEncoderLimit = 0.0; // TODO
+
+  // Limit switch DIO ports
+  public static final int kExtendLimitSwitchPort = 0; // TODO
+  public static final int kRetractLimitSwitchPort = 1; // TODO
+
+  // Intake spinner motor
+  public static final int kIntakeMotorCanId = 16; // TODO: set
+  public static final double kIntakeSpinPower = 1.0;
 }
 public static class AngleLimitConstants{
 //all in degrees, remember to convert to radians

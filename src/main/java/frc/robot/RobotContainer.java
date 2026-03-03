@@ -115,9 +115,10 @@ public class RobotContainer {
     m_driverController.leftBumper().onTrue(new CoralStationAlign(m_driveSubsystem, m_driverController));
 
     // Intake bindings
-    m_driverController.rightBumper().whileTrue(m_intakeSubsystem.intakeCommand());
-    m_driverController.y().onTrue(m_intakeSubsystem.shootCommand().withTimeout(2.0));
-    m_driverController.b().whileTrue(m_intakeSubsystem.outtakeCommand());
+    m_driverController.rightBumper().whileTrue(m_intakeSubsystem.intakeForwardsCommand());
+    m_driverController.y().whileTrue(m_intakeSubsystem.intakeBackwardsCommand());
+    m_driverController.b().onTrue(m_intakeSubsystem.extendIntakeCommand());
+    m_driverController.a().onTrue(m_intakeSubsystem.retractIntakeCommand());
   }
 
   /**
