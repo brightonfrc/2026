@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 public class TransferSubsystem extends SubsystemBase {
   public static final double BELT_SPEED = 1.0;
@@ -18,13 +19,13 @@ public class TransferSubsystem extends SubsystemBase {
   private boolean isIndexerRunning = false;
 
   /** Creates a new TransferSubsystem. */
-  public TransferSubsystem(SparkMax beltMotor, SparkMax indexerMotor) {
-    this.beltMotor = beltMotor;
-    this.indexerMotor = indexerMotor;
+  public TransferSubsystem() {
+    this.beltMotor = new SparkMax(13, MotorType.kBrushless);
+    this.indexerMotor = new SparkMax(14, MotorType.kBrushless);
   }
 
   public Command toggleBeltForwards() {
-      return runOnce(
+      return run(
         () -> {
           if (isBeltRunning) {
             beltMotor.set(0);
@@ -37,7 +38,7 @@ public class TransferSubsystem extends SubsystemBase {
   }
 
   public Command toggleBeltBackwards() {
-      return runOnce(
+      return run(
         () -> {
           if (isBeltRunning) {
             beltMotor.set(0);
@@ -50,7 +51,7 @@ public class TransferSubsystem extends SubsystemBase {
   }
   
   public Command toggleIndexer() {
-    return runOnce(
+    return run(
       () -> {
         if (isIndexerRunning) {
           indexerMotor.set(0);
