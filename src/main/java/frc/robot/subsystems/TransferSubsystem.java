@@ -9,23 +9,56 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.revrobotics.spark.SparkMax;
 
 public class TransferSubsystem extends SubsystemBase {
-  public SparkMax motor1;
-  public SparkMax motor2;
-  public SparkMax motor3;
-  public SparkMax motor4;
+  public static final double BELT_SPEED = 1.0;
+  public static final double INDEXER_SPEED = 1.0;
+
+  public final SparkMax beltMotor, indexerMotor;
+
+  private boolean isBeltRunning = false;
+  private boolean isIndexerRunning = false;
 
   /** Creates a new TransferSubsystem. */
-  public TransferSubsystem(SparkMax motor1, SparkMax motor2, SparkMax motor3, SparkMax motor4) {
-    this.motor1 = motor1;
-    this.motor2 = motor2;
-    this.motor3 = motor3;
-    this.motor4 = motor4;
+  public TransferSubsystem(SparkMax beltMotor, SparkMax indexerMotor) {
+    this.beltMotor = beltMotor;
+    this.indexerMotor = indexerMotor;
   }
 
-  public void setPower(double power) {
-    this.motor1.set(power);
-    this.motor2.set(power);
-    this.motor3.set(power);
-    this.motor4.set(power);
+  public Command toggleBeltForwards() {
+      return runOnce(
+        () -> {
+          if (isBeltRunning) {
+            beltMotor.set(0);
+          } else {
+            beltMotor.set(BELT_SPEED);
+          }
+
+          isBeltRunning = !isBeltRunning;
+        });
+  }
+
+  public Command toggleBeltBackwards() {
+      return runOnce(
+        () -> {
+          if (isBeltRunning) {
+            beltMotor.set(0);
+          } else {
+            beltMotor.set(-BELT_SPEED);
+          }
+
+          isBeltRunning = !isBeltRunning;
+        });
+  }
+  
+  public Command toggleIndexer() {
+    return runOnce(
+      () -> {
+        if (isIndexerRunning) {
+          indexerMotor.set(0);
+        } else {
+          indexerMotor.set(INDEXER_SPEED);
+        }
+
+        isIndexerRunning = !isIndexerRunning;
+      });
   }
 }
