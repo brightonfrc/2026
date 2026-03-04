@@ -306,12 +306,15 @@ public class AprilTagPoseEstimator extends SubsystemBase {
     // SmartDashboard.putString("globalPose", globalPose.toString());
     
     if(globalPose.isEmpty()) return Optional.empty();
+    return getRobotToTag(globalPose.get(), tagID);
+  }
 
+  private Optional<Transform3d> getRobotToTag(EstimatedRobotPose robotPose, int tagID) {
     // Look for tag
     List<AprilTag> tags = this.aprilTagFieldLayout.getTags();
     for(AprilTag tag : tags) {
       if(tag.ID == tagID) {
-        Pose3d poseDifference = tag.pose.relativeTo(globalPose.get().estimatedPose);
+        Pose3d poseDifference = tag.pose.relativeTo(robotPose.estimatedPose);
         // double yawRobotToTag = tag.pose.getRotation().getZ() - poseDifferenceFieldCoordinates.getRotation().getZ();
         // Transform3d poseDifferenceTagCoordinates = poseDifferenceFieldCoordinates.;
         return Optional.of(new Transform3d(poseDifference.getTranslation(), poseDifference.getRotation()));
@@ -327,13 +330,43 @@ public class AprilTagPoseEstimator extends SubsystemBase {
  * @return The transform from the robot to the tag.
  */
   public Optional<Transform3d> getRobotToSeenTag() {
+    Optional<Integer> closestTagId = getClosestVisibleTagId();
+    return closestTagId.isPresent() ? getRobotToTag(closestTagId.get()) : Optional.empty();
+  }
+
+  /**
+   * Get the ID of the closest visible AprilTag from the robot's current estimated pose.
+   * Falls back to closest camera-space distance if a global pose cannot be estimated.
+   */
+  public Optional<Integer> getClosestVisibleTagId() {
     PhotonPipelineResult latestResult = getLatestResult();
-    Optional<PhotonTrackedTarget> best = selectBestTarget(latestResult.targets);
-    if(best.isEmpty()) {
+    if (!latestResult.hasTargets()) {
       return Optional.empty();
-    } else {
-      return this.getRobotToTag(best.get().fiducialId);
     }
+
+    Optional<EstimatedRobotPose> globalPose = getGlobalPose();
+    if (globalPose.isPresent()) {
+      Integer closestTagId = null;
+      double closestDistance = Double.POSITIVE_INFINITY;
+      for (PhotonTrackedTarget target : latestResult.getTargets()) {
+        Optional<Transform3d> robotToTag =
+            getRobotToTag(globalPose.get(), target.getFiducialId());
+        if (robotToTag.isEmpty()) {
+          continue;
+        }
+        double distance = robotToTag.get().getTranslation().getNorm();
+        if (closestTagId == null || distance < closestDistance) {
+          closestTagId = target.getFiducialId();
+          closestDistance = distance;
+        }
+      }
+      if (closestTagId != null) {
+        return Optional.of(closestTagId);
+      }
+    }
+
+    Optional<PhotonTrackedTarget> closestByCamera = selectClosestTargetByCameraDistance(latestResult.getTargets());
+    return closestByCamera.map(PhotonTrackedTarget::getFiducialId);
   }
 
   private PhotonPipelineResult getLatestResult() {
@@ -366,10 +399,40 @@ public class AprilTagPoseEstimator extends SubsystemBase {
     if (!result.hasTargets()) {
       return Optional.empty();
     }
+
+    Optional<Integer> closestTagId = getClosestVisibleTagId();
+    if (closestTagId.isPresent()) {
+      for (PhotonTrackedTarget t : result.getTargets()) {
+        if (t.getFiducialId() == closestTagId.get()) {
+          return Optional.of(t);
+        }
+      }
+    }
+
+    return selectClosestTargetByCameraDistance(result.getTargets());
+  }
+
+  /**
+   * Get a currently visible target by fiducial ID.
+   */
+  public Optional<PhotonTrackedTarget> getTargetById(int tagId) {
+    PhotonPipelineResult result = getLatestResult();
+    if (!result.hasTargets()) {
+      return Optional.empty();
+    }
+    for (PhotonTrackedTarget t : result.getTargets()) {
+      if (t.getFiducialId() == tagId) {
+        return Optional.of(t);
+      }
+    }
+    return Optional.empty();
+  }
+
+  private Optional<PhotonTrackedTarget> selectClosestTargetByCameraDistance(List<PhotonTrackedTarget> targets) {
     PhotonTrackedTarget closest = null;
     double bestDist = Double.POSITIVE_INFINITY;
     double bestAmbiguity = Double.POSITIVE_INFINITY;
-    for (PhotonTrackedTarget t : result.getTargets()) {
+    for (PhotonTrackedTarget t : targets) {
       double dist = t.getBestCameraToTarget().getTranslation().getNorm();
       double ambiguity = t.getPoseAmbiguity();
       if (ambiguity < 0) {

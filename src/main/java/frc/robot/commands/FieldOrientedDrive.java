@@ -15,6 +15,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.util.Units;
 import org.photonvision.PhotonUtils;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import java.util.Optional;
 public class FieldOrientedDrive extends Command {
     private DriveSubsystem driveSubsystem;
     private CommandXboxController xboxController;
@@ -38,6 +39,8 @@ public class FieldOrientedDrive extends Command {
     // to deal with the onpress toggling nonsense
     private Boolean isAPressed;
     private Boolean isBPressed;
+    private boolean wasAutoAlignRequested;
+    private Optional<Integer> lockedAutoAlignTagId = Optional.empty();
 
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     /**
@@ -68,6 +71,8 @@ public class FieldOrientedDrive extends Command {
 
         isAPressed = false;
         isBPressed = false;
+        wasAutoAlignRequested = false;
+        lockedAutoAlignTagId = Optional.empty();
         // Dashboard toggle for sim/no-controller use.
         SmartDashboard.setDefaultBoolean("Vision/AutoAlign", false);
     }
@@ -163,28 +168,52 @@ public class FieldOrientedDrive extends Command {
         );
 
         // Vision-assisted yaw alignment while holding right bumper.
-        var closestTarget = poseEstimator.getClosestTarget();
-        boolean targetVisible = closestTarget.isPresent();
-        SmartDashboard.putBoolean("Vision Target Visible", targetVisible);
         boolean autoAlignRequested =
             xboxController.rightBumper().getAsBoolean()
                 || SmartDashboard.getBoolean("Vision/AutoAlign", false);
+        if (autoAlignRequested && !wasAutoAlignRequested) {
+            lockedAutoAlignTagId = poseEstimator.getClosestVisibleTagId();
+        } else if (!autoAlignRequested && wasAutoAlignRequested) {
+            lockedAutoAlignTagId = Optional.empty();
+        }
+        wasAutoAlignRequested = autoAlignRequested;
+
+        SmartDashboard.putNumber("Vision/LockedTagId", lockedAutoAlignTagId.orElse(-1));
+
+        Optional<org.photonvision.targeting.PhotonTrackedTarget> lockedTarget = Optional.empty();
+        if (lockedAutoAlignTagId.isPresent()) {
+            lockedTarget = poseEstimator.getTargetById(lockedAutoAlignTagId.get());
+        }
+        boolean targetVisible = lockedTarget.isPresent();
+        SmartDashboard.putBoolean("Vision Target Visible", targetVisible);
+
         if (autoAlignRequested && targetVisible) {
-            var target = closestTarget.get();
-            double visionTurn = -target.getYaw() * VisionAlignConstants.kTurnP;
-            rotSpeed = MathUtil.clamp(
-                visionTurn,
-                -TestingConstants.maximumRotationSpeedRobotOriented,
-                TestingConstants.maximumRotationSpeedRobotOriented);
+            var target = lockedTarget.get();
             double targetRange =
                 PhotonUtils.calculateDistanceToTargetMeters(
                     VisionAlignConstants.kCameraHeightMeters,
                     VisionAlignConstants.kTargetHeightMeters,
                     Units.degreesToRadians(VisionAlignConstants.kCameraPitchDegrees),
                     Units.degreesToRadians(target.getPitch()));
-            SmartDashboard.putNumber("Vision Target Range M", targetRange);
-            double visionForward = (VisionAlignConstants.kDesiredRangeMeters - targetRange) * VisionAlignConstants.kRangeP;
-            xSpeed = MathUtil.clamp(visionForward, -TestingConstants.maximumSpeed, TestingConstants.maximumSpeed);
+            double desiredStopRange = 1.0;
+            SmartDashboard.putNumber("Vision Target Range M", desiredStopRange);
+            SmartDashboard.putNumber("Vision Measured Range M", targetRange);
+            boolean rangeSafetyStop = targetRange <= -5.0;
+            SmartDashboard.putBoolean("Vision Range Safety Stop", rangeSafetyStop);
+
+            if (rangeSafetyStop) {
+                xSpeed = 0.0;
+                ySpeed = 0.0;
+                rotSpeed = 0.0;
+            } else {
+                double visionTurn = -target.getYaw() * VisionAlignConstants.kTurnP;
+                rotSpeed = MathUtil.clamp(
+                    visionTurn,
+                    -TestingConstants.maximumRotationSpeedRobotOriented,
+                    TestingConstants.maximumRotationSpeedRobotOriented);
+                double visionForward = (desiredStopRange - targetRange) * VisionAlignConstants.kRangeP;
+                xSpeed = MathUtil.clamp(visionForward, -TestingConstants.maximumSpeed, TestingConstants.maximumSpeed);
+            }
         }
 
         driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);

@@ -114,7 +114,8 @@ public class RobotContainer {
   public void printPose() {
     List<PhotonTrackedTarget> tags = m_poseEstimator.getVisibleTags();
     SmartDashboard.putBoolean("robot2tag/visible", !tags.isEmpty());
-    SmartDashboard.putNumber("robot2tag/tagId", tags.isEmpty() ? -1 : tags.get(0).fiducialId);
+    Optional<Integer> closestTagId = m_poseEstimator.getClosestVisibleTagId();
+    SmartDashboard.putNumber("robot2tag/tagId", closestTagId.orElse(-1));
     SmartDashboard.putNumber("robot2tag/t/x", Double.NaN);
     SmartDashboard.putNumber("robot2tag/t/y", Double.NaN);
     SmartDashboard.putNumber("robot2tag/r/yaw", Double.NaN);
@@ -127,10 +128,10 @@ public class RobotContainer {
       SmartDashboard.putNumber("robot2tag/r/yaw", r2t.getRotation().getZ());
     }
 
-    var bestTarget = m_poseEstimator.getBestTarget();
-    SmartDashboard.putBoolean("vision/hasTargets", bestTarget.isPresent());
-    if (bestTarget.isPresent()) {
-      var target = bestTarget.get();
+    var closestTarget = m_poseEstimator.getClosestTarget();
+    SmartDashboard.putBoolean("vision/hasTargets", closestTarget.isPresent());
+    if (closestTarget.isPresent()) {
+      var target = closestTarget.get();
       SmartDashboard.putNumber("vision/yaw", target.getYaw());
       SmartDashboard.putNumber("vision/pitch", target.getPitch());
       SmartDashboard.putNumber("vision/area", target.getArea());

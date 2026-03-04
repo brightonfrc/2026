@@ -349,6 +349,7 @@ public static final double kSkewP = 0.006;
 // Distance control (pitch -> range -> forward command).
 public static final double kRangeP = 0.8;
 public static final double kDesiredRangeMeters = 1.0;
+public static final double kStopShortMeters = 0.10;
 public static final double kRangeDeadbandMeters = 0.08;
 // Strafe to center on tag (meters -> normalized strafe command).
 public static final double kStrafeP = 0.8;
