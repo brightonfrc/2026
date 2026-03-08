@@ -6,9 +6,7 @@ package frc.robot;
 
 
 import frc.robot.Constants.OIConstants;
-import frc.robot.commands.CoralStationAlign;
 import frc.robot.commands.FieldOrientedDrive;
-// import frc.robot.subsystems.ColourSensor;
 import frc.robot.subsystems.DriveSubsystem;
 
 import com.pathplanner.lib.commands.PathPlannerAuto;
@@ -24,8 +22,9 @@ import frc.robot.subsystems.AprilTagPoseEstimator;
 import java.util.Optional;
 
 import edu.wpi.first.math.geometry.Transform3d;
+import java.util.List;
+import org.photonvision.targeting.PhotonTrackedTarget;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
@@ -39,16 +38,14 @@ public class RobotContainer {
   private final DriveSubsystem m_driveSubsystem= new DriveSubsystem();
   private final AprilTagPoseEstimator m_poseEstimator = new AprilTagPoseEstimator();
 
-  private boolean active = false;
-
   // Replace with CommandPS4Controller or CommandJoystick if needed
   private final CommandXboxController m_driverController =
   new CommandXboxController(OIConstants.kDriverControllerPort);
-  private final CommandPS4Controller m_manualLiftController= new CommandPS4Controller(OIConstants.kManualLiftControllerPort);
   private final FieldOrientedDrive fieldOrientedDrive= new FieldOrientedDrive(m_driveSubsystem, m_driverController);
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
+    configureBindings();
     m_driveSubsystem.setDefaultCommand(fieldOrientedDrive);
   }
 
@@ -74,7 +71,6 @@ public class RobotContainer {
     m_driverController.x().onTrue( // Reset gyro whenever necessary
       new InstantCommand(() -> m_driveSubsystem.resetGyro(), m_driveSubsystem)
     );
-    m_driverController.leftBumper().onTrue(new CoralStationAlign(m_driveSubsystem, m_driverController));
   }
 
   /**
@@ -112,7 +108,6 @@ public class RobotContainer {
     // return new AprilTagAlignment(m_driveSubsystem, new AprilTagPoseEstimator(), 3, 0.5);
   }
 
-  // TODO: Delete
   public void printPose() {
     Optional<Transform3d> opt = m_poseEstimator.getRobotToSeenTag();
     if(opt.isPresent()) {
@@ -123,6 +118,4 @@ public class RobotContainer {
       SmartDashboard.putNumber("robot2tag/r/yaw", r2t.getRotation().getZ());
     }
   }
-
 }
-
