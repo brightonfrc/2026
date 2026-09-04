@@ -24,6 +24,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.revrobotics.spark.SparkMax;
 import com.pathplanner.lib.config.PIDConstants;
 
 
@@ -47,14 +48,14 @@ public class DriveSubsystem extends SubsystemBase {
         DriveConstants.FRONT_RIGHT_TURNING_CAN_ID,
         DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
-    private final MAXSwerveModule rearLeft = new MAXSwerveModule(
-        DriveConstants.REAR_LEFT_DRIVING_CAN_ID,
-        DriveConstants.REAR_LEFT_TURNING_CAN_ID,
+    private final MAXSwerveModule backLeft = new MAXSwerveModule(
+        DriveConstants.BACK_LEFT_DRIVING_CAN_ID,
+        DriveConstants.BACK_LEFT_TURNING_CAN_ID,
         DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
 
-    private final MAXSwerveModule rearRight = new MAXSwerveModule(
-        DriveConstants.REAR_RIGHT_DRIVING_CAN_ID,
-        DriveConstants.REAR_RIGHT_TURNING_CAN_ID,
+    private final MAXSwerveModule backRight = new MAXSwerveModule(
+        DriveConstants.BACK_RIGHT_DRIVING_CAN_ID,
+        DriveConstants.BACK_RIGHT_TURNING_CAN_ID,
         DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
 
     // The gyro sensor
@@ -75,8 +76,8 @@ public class DriveSubsystem extends SubsystemBase {
         new SwerveModulePosition[] {
             frontLeft.getPosition(),
             frontRight.getPosition(),
-            rearLeft.getPosition(),
-            rearRight.getPosition()
+            backLeft.getPosition(),
+            backRight.getPosition()
         });
 
     public DriveSubsystem() {
@@ -118,8 +119,8 @@ public class DriveSubsystem extends SubsystemBase {
             new SwerveModulePosition[] {
                 frontLeft.getPosition(),
                 frontRight.getPosition(),
-                rearLeft.getPosition(),
-                rearRight.getPosition()
+                backLeft.getPosition(),
+                backRight.getPosition()
             });
     }
 
@@ -146,8 +147,8 @@ public class DriveSubsystem extends SubsystemBase {
             new SwerveModulePosition[] {
                 frontLeft.getPosition(),
                 frontRight.getPosition(),
-                rearLeft.getPosition(),
-                rearRight.getPosition()
+                backLeft.getPosition(),
+                backRight.getPosition()
             },
             pose);
     }
@@ -170,16 +171,16 @@ public class DriveSubsystem extends SubsystemBase {
             swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
         frontLeft.setDesiredState(swerveModuleStates[0]);
         frontRight.setDesiredState(swerveModuleStates[1]);
-        rearLeft.setDesiredState(swerveModuleStates[2]);
-        rearRight.setDesiredState(swerveModuleStates[3]);
+        backLeft.setDesiredState(swerveModuleStates[2]);
+        backRight.setDesiredState(swerveModuleStates[3]);
     }
 
     // Sets the wheels into an X formation to prevent movement.
     public void setX() {
         frontLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
         frontRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-        rearLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
-        rearRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
+        backLeft.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(-45)));
+        backRight.setDesiredState(new SwerveModuleState(0, Rotation2d.fromDegrees(45)));
     }
 
     // Sets the swerve ModuleStates.
@@ -188,16 +189,16 @@ public class DriveSubsystem extends SubsystemBase {
             desiredStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
         frontLeft.setDesiredState(desiredStates[0]);
         frontRight.setDesiredState(desiredStates[1]);
-        rearLeft.setDesiredState(desiredStates[2]);
-        rearRight.setDesiredState(desiredStates[3]);
+        backLeft.setDesiredState(desiredStates[2]);
+        backRight.setDesiredState(desiredStates[3]);
     }
 
     // Resets the drive encoders to currently read a position of 0.
     public void resetEncoders() {
         frontLeft.resetEncoders();
-        rearLeft.resetEncoders();
+        backLeft.resetEncoders();
         frontRight.resetEncoders();
-        rearRight.resetEncoders();
+        backRight.resetEncoders();
     }
 
     // Zeroes the heading of the robot.
@@ -214,8 +215,8 @@ public class DriveSubsystem extends SubsystemBase {
         return DriveConstants.DRIVE_KINEMATICS.toChassisSpeeds(
             frontLeft.getState(),
             frontRight.getState(),
-            rearLeft.getState(),
-            rearRight.getState()
+            backLeft.getState(),
+            backRight.getState()
         );
     }
 
@@ -239,5 +240,19 @@ public class DriveSubsystem extends SubsystemBase {
     // Gets angle of the gyro in degrees.
     public double getGyroAngle() {
         return gyro.getAngle() % 360;
+    }
+
+    public SparkMax[] getMotors() {
+        return new SparkMax[]{
+            frontLeft.getDriveMotor(),
+            frontRight.getDriveMotor(),
+            backLeft.getDriveMotor(),
+            backRight.getDriveMotor(),
+
+            frontLeft.getTurnMotor(),
+            frontRight.getTurnMotor(),
+            backLeft.getTurnMotor(),
+            backRight.getTurnMotor()
+        };
     }
 }

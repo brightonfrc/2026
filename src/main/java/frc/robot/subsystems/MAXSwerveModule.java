@@ -96,4 +96,12 @@ public class MAXSwerveModule {
     public void resetEncoders() {
         drivingEncoder.setPosition(0);
     }
+
+    public SparkMax getDriveMotor() {
+        return drivingSpark;
+    }
+
+    public SparkMax getTurnMotor() {
+        return turningSpark;
+    }
 }

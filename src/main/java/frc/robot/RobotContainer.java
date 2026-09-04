@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import frc.robot.commands.CoralStationAlign;
 import frc.robot.commands.FieldOrientedDrive;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.AprilTagPoseEstimator;
@@ -12,6 +11,7 @@ import frc.robot.subsystems.AprilTagPoseEstimator;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 
 import frc.robot.commands.StopRobot;
+import frc.robot.commands.MotorsTest;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -20,8 +20,8 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 
 import java.util.Optional;
 
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.button.CommandPS4Controller;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 
 public class RobotContainer {
@@ -33,19 +33,15 @@ public class RobotContainer {
     private final DriveSubsystem driveSubsystem = new DriveSubsystem();
     private final AprilTagPoseEstimator poseEstimator = new AprilTagPoseEstimator();
 
-    private boolean active = false;
+    private final CommandXboxController driverController = new CommandXboxController(DRIVER_CONTROLLER_PORT);
+    private final XboxController testController = new XboxController(DRIVER_CONTROLLER_PORT);
 
-    private final CommandXboxController driverController =
-        new CommandXboxController(DRIVER_CONTROLLER_PORT);
-    private final CommandPS4Controller manualLiftController = new CommandPS4Controller(MANUAL_LIFT_CONTROLLER_PORT);
     private final FieldOrientedDrive fieldOrientedDrive = new FieldOrientedDrive(driveSubsystem, driverController);
+    private final MotorsTest motorsTest = new MotorsTest(testController, driveSubsystem);
 
     public RobotContainer() {
-        driveSubsystem.setDefaultCommand(fieldOrientedDrive);
         configureBindings();
     }
-
-    public static boolean fieldRelative = true;
 
     private void configureBindings() {
         if (driverController.x().getAsBoolean()) {
@@ -54,7 +50,6 @@ public class RobotContainer {
         driverController.x().onTrue( // Reset gyro whenever necessary
             new InstantCommand(() -> driveSubsystem.resetGyro(), driveSubsystem)
         );
-        driverController.leftBumper().onTrue(new CoralStationAlign(driveSubsystem, driverController));
     }
 
     public Command getAutonomousCommand() {
@@ -63,6 +58,10 @@ public class RobotContainer {
             new PathPlannerAuto("Auto"),
             stop
         );
+    }
+
+    public Command getMotorsTestCommand() {
+        return motorsTest;
     }
 
     public void setUpDefaultCommand() {
