@@ -152,7 +152,7 @@ public class FieldOrientedDrive extends Command {
             TestingConstants.MAXIMUM_ROTATION_SPEED_ROBOT_ORIENTED
         );
 
-        driveSubsystem.drive(xSpeed, -ySpeed, rotSpeed, false);
+        driveSubsystem.drive(-ySpeed, -xSpeed, rotSpeed, false);
 
         SmartDashboard.putNumber("Y Speed", ySpeed);
         SmartDashboard.putNumber("X Speed", xSpeed);

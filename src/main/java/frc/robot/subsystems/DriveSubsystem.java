@@ -72,7 +72,7 @@ public class DriveSubsystem extends SubsystemBase {
     // Odometry class for tracking robot pose
     SwerveDriveOdometry odometry = new SwerveDriveOdometry(
         DriveConstants.DRIVE_KINEMATICS,
-        Rotation2d.fromDegrees(gyro.getAngle() % 360),
+        getHeading(),
         new SwerveModulePosition[] {
             frontLeft.getPosition(),
             frontRight.getPosition(),
@@ -115,7 +115,7 @@ public class DriveSubsystem extends SubsystemBase {
     public void periodic() {
         // Update the odometry in the periodic block
         odometry.update(
-            Rotation2d.fromDegrees(gyro.getAngle() % 360),
+            getHeading(),
             new SwerveModulePosition[] {
                 frontLeft.getPosition(),
                 frontRight.getPosition(),
@@ -143,7 +143,7 @@ public class DriveSubsystem extends SubsystemBase {
     // Resets the odometry to the specified pose.
     public void resetOdometry(Pose2d pose) {
         odometry.resetPosition(
-            Rotation2d.fromDegrees(gyro.getAngle() % 360),
+            getHeading(),
             new SwerveModulePosition[] {
                 frontLeft.getPosition(),
                 frontRight.getPosition(),
@@ -162,17 +162,19 @@ public class DriveSubsystem extends SubsystemBase {
         double ySpeedDelivered = ySpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
         double rotDelivered = rot * DriveConstants.MAX_ANGULAR_SPEED;
 
-        var swerveModuleStates = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
+        SwerveModuleState[] swerveModuleStates = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
             fieldRelative
                 ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
-                    Rotation2d.fromDegrees(gyro.getAngle() % 360))
+                    getHeading())
                 : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
+
         SwerveDriveKinematics.desaturateWheelSpeeds(
             swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
-        frontLeft.setDesiredState(swerveModuleStates[0]);
+
+        frontLeft.setDesiredState(swerveModuleStates[3]);
         frontRight.setDesiredState(swerveModuleStates[1]);
         backLeft.setDesiredState(swerveModuleStates[2]);
-        backRight.setDesiredState(swerveModuleStates[3]);
+        backRight.setDesiredState(swerveModuleStates[0]);
     }
 
     // Sets the wheels into an X formation to prevent movement.
@@ -207,8 +209,12 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     // Returns the heading of the robot in degrees, from -180 to 180.
-    public double getHeading() {
-        return Rotation2d.fromDegrees(gyro.getAngle() % 360).getDegrees();
+    public double getHeadingDeg() {
+        return getHeading().getDegrees();
+    }
+
+    public Rotation2d getHeading() {
+        return Rotation2d.fromDegrees((gyro.getAngle()) % 360);
     }
 
     public ChassisSpeeds getChassisSpeeds() {
