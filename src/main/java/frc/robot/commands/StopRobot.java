@@ -7,35 +7,27 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
-/* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
 public class StopRobot extends Command {
-  private DriveSubsystem driveSubsystem;
-  /** Creates a new StopRobot. */
-  public StopRobot(DriveSubsystem driveSubsystem) {
-    this.driveSubsystem=driveSubsystem;
-    // Use addRequirements() here to declare subsystem dependencies.
-    addRequirements(driveSubsystem);
-  }
+    private DriveSubsystem driveSubsystem;
 
-  // Called when the command is initially scheduled.
-  @Override
-  public void initialize() {}
+    public StopRobot(DriveSubsystem driveSubsystem) {
+        this.driveSubsystem = driveSubsystem;
+        addRequirements(driveSubsystem);
+    }
 
-  // Called every time the scheduler runs while the command is scheduled.
-  @Override
-  public void execute() {
-    
-  }
+    @Override
+    public void initialize() {}
 
-  // Called once the command ends or is interrupted.
-  @Override
-  public void end(boolean interrupted) {
-    driveSubsystem.drive(0, 0, 0, false);
-  }
+    @Override
+    public void execute() {}
 
-  // Returns true when the command should end.
-  @Override
-  public boolean isFinished() {
-    return true;
-  }
+    @Override
+    public void end(boolean interrupted) {
+        driveSubsystem.drive(0, 0, 0, false);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return true;
+    }
 }
