@@ -37,8 +37,8 @@ public class FieldOrientedDrive extends Command {
     private Boolean slowModeActive = true;
     private Boolean fieldCentricTurning = false;
     // to deal with the onpress toggling nonsense
-    private Boolean isAPressed;
-    private Boolean isBPressed;
+    private boolean is0Pressed;
+    private Boolean is1Pressed;
 
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
     public FieldOrientedDrive(DriveSubsystem driveSubsystem, CommandJoystick joystick, CommandXboxController xboxController) {
@@ -69,29 +69,29 @@ public class FieldOrientedDrive extends Command {
     @Override
     public void execute() {
         // toggle slow mode on press of A
-        if (joystick.button(0).getAsBoolean() && !isAPressed) {
+        if (joystick.button(0).getAsBoolean() && !is0Pressed) {
             slowModeActive = !slowModeActive; // toggle
-            isAPressed = true;
+            is0Pressed = true;
         }
         // we ignore anything while its pressed, to avoid rapid switching, by having a "hasToggled" flag while A is pressed
-        if (!joystick.button(0).getAsBoolean() && isAPressed) {
-            isAPressed = false;
+        if (!joystick.button(0).getAsBoolean() && is0Pressed) {
+            is0Pressed = false;
         }
 
         // ditto for field-centric-turning with B press
-        if (xboxController.button(1).getAsBoolean() && !isBPressed) {
+        if (xboxController.button(1).getAsBoolean() && !is1Pressed) {
             fieldCentricTurning = !fieldCentricTurning;
-            isBPressed = true;
+            is1Pressed = true;
         }
-        if (!xboxController.button(1).getAsBoolean() && isBPressed) {
-            isBPressed = false;
+        if (!xboxController.button(1).getAsBoolean() && is1Pressed) {
+            is1Pressed = false;
         }
 
         SmartDashboard.putBoolean("Slow Mode Active", slowModeActive);
         SmartDashboard.putBoolean("Field Centric Driving", fieldCentricTurning);
 
-        SmartDashboard.putBoolean("A is on?", isAPressed);
-        SmartDashboard.putBoolean("B is on?", isBPressed);
+        SmartDashboard.putBoolean("0 is on?", is0Pressed);
+        SmartDashboard.putBoolean("1 is on?", is1Pressed);
 
         maximumAcceleration = (slowModeActive ? MAXIMUM_ACCELERATION_REDUCED : MAXIMUM_ACCELERATION);
 
