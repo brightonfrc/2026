@@ -18,6 +18,7 @@ public class FieldOrientedDrive extends Command {
     public static final double MAXIMUM_ACCELERATION_REDUCED = 0.01;
 
     private DriveSubsystem driveSubsystem;
+    private CommandJoystick joystick;
     private CommandXboxController xboxController;
     private PIDController bearingPIDController;
     private double goalBearing;
@@ -40,8 +41,9 @@ public class FieldOrientedDrive extends Command {
     private Boolean isBPressed;
 
     @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
-    public FieldOrientedDrive(DriveSubsystem driveSubsystem, CommandXboxController xboxController) {
+    public FieldOrientedDrive(DriveSubsystem driveSubsystem, CommandJoystick joystick, CommandXboxController xboxController) {
         this.driveSubsystem = driveSubsystem;
+        this.joystick = joystick;
         this.xboxController = xboxController;
         addRequirements(driveSubsystem);
     }
@@ -67,21 +69,21 @@ public class FieldOrientedDrive extends Command {
     @Override
     public void execute() {
         // toggle slow mode on press of A
-        if (xboxController.a().getAsBoolean() && !isAPressed) {
+        if (joystick.button(0).getAsBoolean() && !isAPressed) {
             slowModeActive = !slowModeActive; // toggle
             isAPressed = true;
         }
         // we ignore anything while its pressed, to avoid rapid switching, by having a "hasToggled" flag while A is pressed
-        if (!xboxController.a().getAsBoolean() && isAPressed) {
+        if (!joystick.button(0).getAsBoolean() && isAPressed) {
             isAPressed = false;
         }
 
         // ditto for field-centric-turning with B press
-        if (xboxController.b().getAsBoolean() && !isBPressed) {
+        if (xboxController.button(1).getAsBoolean() && !isBPressed) {
             fieldCentricTurning = !fieldCentricTurning;
             isBPressed = true;
         }
-        if (!xboxController.b().getAsBoolean() && isBPressed) {
+        if (!xboxController.button(1).getAsBoolean() && isBPressed) {
             isBPressed = false;
         }
 
@@ -96,8 +98,8 @@ public class FieldOrientedDrive extends Command {
         // Both joysticks assumes the right to be bearing 0 and then works clockwise from there. To have bearing 0 be in front, the bearing
         // has to be moved back by 90 degrees / 1/2 PI.
         // If right joystick is not being moved retain previous bearing.
-        if (Math.hypot(xboxController.getRightY(), xboxController.getRightX()) > 0.9) {
-            joystickTurnBearing = Math.atan2(xboxController.getRightY(), xboxController.getRightX()) + Math.PI / 2;
+        if (Math.hypot(Joystick.getY(), joystick.getY()) > 0.9) {
+            joystickTurnBearing = Math.atan2(joystick.getY(), joystick.getTwist()) + Math.PI / 2;
         }
         // error tolerance of 2 degrees
         if (Math.abs(joystickTurnBearing - goalBearing) > Math.PI / 180 * FieldOrientedDriveConstants.BEARING_TOLERANCE) {
@@ -114,10 +116,10 @@ public class FieldOrientedDrive extends Command {
         robotBearing = robotBearing / 180 * Math.PI;
 
         // it looks cooked but that's because the controller is mapped kinda funny
-        joystickMoveBearing = Math.atan2(xboxController.getLeftX(), -xboxController.getLeftY());
+        joystickMoveBearing = Math.atan2(joystick.getX(), -joystick.getY());
         joystickMoveBearing = joystickMoveBearing + robotBearing - 2 * Math.PI;
 
-        joystickMoveMagnitude = Math.pow(Math.pow(xboxController.getLeftX(), 2) + Math.pow(xboxController.getLeftY(), 2), 0.5);
+        joystickMoveMagnitude = Math.pow(Math.pow(joystick.getX(), 2) + Math.pow(joystick.getY(), 2), 0.5);
 
         // limit acceleration
         xSpeed = joystickMoveMagnitude * Math.cos(joystickMoveBearing) * (slowModeActive ? TestingConstants.MAXIMUM_SPEED_REDUCED : TestingConstants.MAXIMUM_SPEED);
@@ -142,7 +144,7 @@ public class FieldOrientedDrive extends Command {
             rotSpeed = bearingPIDController.calculate(robotBearing);
         } else {
             // William and Sam prefers this
-            rotSpeed = -xboxController.getRightX();
+            rotSpeed = -joystick.getTwist();
         }
 
         // multiply by slow mode factor
