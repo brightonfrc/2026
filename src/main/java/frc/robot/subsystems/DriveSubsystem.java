@@ -30,9 +30,9 @@ import com.pathplanner.lib.config.PIDConstants;
 
 public class DriveSubsystem extends SubsystemBase {
     // PathPlanner autonomous PID constants
-    public static final double AUTON_TRANSLATION_KP = 0.4;
+    public static final double AUTON_TRANSLATION_KP = 0.002;
     public static final double AUTON_TRANSLATION_KI = 0;
-    public static final double AUTON_TRANSLATION_KD = 0.405;
+    public static final double AUTON_TRANSLATION_KD = 0.0;
     public static final double AUTON_ROTATION_KP = 0.55;
     public static final double AUTON_ROTATION_KI = 0.0;
     public static final double AUTON_ROTATION_KD = 0.2;
@@ -41,22 +41,22 @@ public class DriveSubsystem extends SubsystemBase {
     private final MAXSwerveModule frontLeft = new MAXSwerveModule(
         DriveConstants.FRONT_LEFT_DRIVING_CAN_ID,
         DriveConstants.FRONT_LEFT_TURNING_CAN_ID,
-        DriveConstants.FRONT_LEFT_CHASSIS_ANGULAR_OFFSET);
+        0);
 
     private final MAXSwerveModule frontRight = new MAXSwerveModule(
         DriveConstants.FRONT_RIGHT_DRIVING_CAN_ID,
         DriveConstants.FRONT_RIGHT_TURNING_CAN_ID,
-        DriveConstants.FRONT_RIGHT_CHASSIS_ANGULAR_OFFSET);
+        0);
 
     private final MAXSwerveModule backLeft = new MAXSwerveModule(
         DriveConstants.BACK_LEFT_DRIVING_CAN_ID,
         DriveConstants.BACK_LEFT_TURNING_CAN_ID,
-        DriveConstants.BACK_LEFT_CHASSIS_ANGULAR_OFFSET);
+        0);
 
     private final MAXSwerveModule backRight = new MAXSwerveModule(
         DriveConstants.BACK_RIGHT_DRIVING_CAN_ID,
         DriveConstants.BACK_RIGHT_TURNING_CAN_ID,
-        DriveConstants.BACK_RIGHT_CHASSIS_ANGULAR_OFFSET);
+        0);
 
     // The gyro sensor
     private final AHRS gyro = new AHRS(AHRS.NavXComType.kMXP_SPI, AHRS.NavXUpdateRate.k50Hz);
@@ -157,16 +157,11 @@ public class DriveSubsystem extends SubsystemBase {
     // xSpeed: Speed in x direction (forward). ySpeed: Speed in y direction (sideways).
     // rot: Angular rate. fieldRelative: Whether speeds are relative to the field.
     public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
-        // Convert the commanded speeds into the correct units for the drivetrain
-        double xSpeedDelivered = xSpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
-        double ySpeedDelivered = ySpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
-        double rotDelivered = rot * DriveConstants.MAX_ANGULAR_SPEED;
-
         SwerveModuleState[] swerveModuleStates = DriveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(
             fieldRelative
-                ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
+                ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeed, ySpeed, rot,
                     getHeading())
-                : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
+                : new ChassisSpeeds(xSpeed, ySpeed, rot));
 
         SwerveDriveKinematics.desaturateWheelSpeeds(
             swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
@@ -175,6 +170,16 @@ public class DriveSubsystem extends SubsystemBase {
         frontRight.setDesiredState(swerveModuleStates[1]);
         backLeft.setDesiredState(swerveModuleStates[2]);
         backRight.setDesiredState(swerveModuleStates[0]);
+    }
+
+    // same as above, but values are between -1 and 1 instead of in m/s
+    public void driveNormalized(double xSpeed, double ySpeed, double rot, boolean fieldRelative) {
+        // Convert the commanded speeds into the correct units for the drivetrain
+        double xSpeedDelivered = xSpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
+        double ySpeedDelivered = ySpeed * DriveConstants.MAX_SPEED_METERS_PER_SECOND;
+        double rotDelivered = rot * DriveConstants.MAX_ANGULAR_SPEED;
+
+        drive(xSpeedDelivered, ySpeedDelivered, rotDelivered, fieldRelative);
     }
 
     // Sets the wheels into an X formation to prevent movement.
