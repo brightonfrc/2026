@@ -33,7 +33,7 @@ public class DriveSubsystem extends SubsystemBase {
     public static final double AUTON_TRANSLATION_KP = 0.002;
     public static final double AUTON_TRANSLATION_KI = 0;
     public static final double AUTON_TRANSLATION_KD = 0.0;
-    public static final double AUTON_ROTATION_KP = 0.55;
+    public static final double AUTON_ROTATION_KP = 0.6;
     public static final double AUTON_ROTATION_KI = 0.0;
     public static final double AUTON_ROTATION_KD = 0.2;
 
@@ -166,10 +166,10 @@ public class DriveSubsystem extends SubsystemBase {
         SwerveDriveKinematics.desaturateWheelSpeeds(
             swerveModuleStates, DriveConstants.MAX_SPEED_METERS_PER_SECOND);
 
-        frontLeft.setDesiredState(swerveModuleStates[3]);
-        frontRight.setDesiredState(swerveModuleStates[1]);
-        backLeft.setDesiredState(swerveModuleStates[2]);
-        backRight.setDesiredState(swerveModuleStates[0]);
+        frontLeft.setDesiredState(swerveModuleStates[1]);
+        frontRight.setDesiredState(swerveModuleStates[0]);
+        backLeft.setDesiredState(swerveModuleStates[3]);
+        backRight.setDesiredState(swerveModuleStates[2]);
     }
 
     // same as above, but values are between -1 and 1 instead of in m/s

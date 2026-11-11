@@ -20,6 +20,22 @@
         "y": 7.0
       },
       "prevControl": {
+        "x": 2.25,
+        "y": 7.0
+      },
+      "nextControl": {
+        "x": 1.75,
+        "y": 7.0
+      },
+      "isLocked": false,
+      "linkedName": null
+    },
+    {
+      "anchor": {
+        "x": 2.0,
+        "y": 7.0
+      },
+      "prevControl": {
         "x": 1.75,
         "y": 7.0
       },
@@ -30,8 +46,12 @@
   ],
   "rotationTargets": [
     {
-      "waypointRelativePos": 1,
+      "waypointRelativePos": 1.0,
       "rotationDegrees": 180.0
+    },
+    {
+      "waypointRelativePos": 2.0,
+      "rotationDegrees": -1.0
     }
   ],
   "constraintZones": [],
