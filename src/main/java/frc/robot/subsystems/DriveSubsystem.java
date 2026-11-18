@@ -30,10 +30,10 @@ import com.pathplanner.lib.config.PIDConstants;
 
 public class DriveSubsystem extends SubsystemBase {
     // PathPlanner autonomous PID constants
-    public static final double AUTON_TRANSLATION_KP = 0.002;
+    public static final double AUTON_TRANSLATION_KP = 15;
     public static final double AUTON_TRANSLATION_KI = 0;
     public static final double AUTON_TRANSLATION_KD = 0.0;
-    public static final double AUTON_ROTATION_KP = 0.6;
+    public static final double AUTON_ROTATION_KP = 5.0;
     public static final double AUTON_ROTATION_KI = 0.0;
     public static final double AUTON_ROTATION_KD = 0.2;
 
